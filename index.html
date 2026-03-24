@@ -24,7 +24,7 @@
             </h1>
             <div class="flex items-center gap-2 mt-2">
                 <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_#8dc63f]"></div>
-                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Live</p>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">Initializing Sync...</p>
             </div>
         </div>
 
@@ -35,7 +35,6 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-        
         <div class="space-y-6">
             <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500">
                 <span class="text-blue-400 font-black uppercase tracking-widest text-xs">In Progress</span>
@@ -46,7 +45,7 @@
 
         <div class="space-y-6">
             <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500">
-                <span class="text-orange-400 font-black uppercase tracking-widest text-xs uppercase">On Hold</span>
+                <span class="text-orange-400 font-black uppercase tracking-widest text-xs">On Hold</span>
                 <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
             <div id="col-hold" class="space-y-4"></div>
@@ -54,21 +53,24 @@
 
         <div class="space-y-6">
             <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green">
-                <span class="strateq-green font-black uppercase tracking-widest text-xs uppercase">Completed</span>
+                <span class="strateq-green font-black uppercase tracking-widest text-xs">Completed</span>
                 <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
             <div id="col-completed" class="space-y-4"></div>
         </div>
-
     </div>
 
     <script>
+        // Use the published CSV URL from your Google Sheet
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
         async function updateDashboard() {
             try {
-                const response = await fetch(`${CSV_URL}&cache=${Date.now()}`);
+                // Force cache-busting to ensure live data
+                const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
                 const data = await response.text();
+                
+                // Parse CSV rows
                 const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
                 
                 const sections = {
@@ -79,4 +81,44 @@
 
                 rows.forEach(row => {
                     if (row.length < 3) return;
-                    const id =
+                    const id = row[0].replace(/"/g, '').trim(); // No.
+                    const title = row[1].replace(/"/g, '').trim(); // Title
+                    const status = row[2].replace(/"/g, '').trim(); // Status
+                    const name = (row[3] || "N/A").replace(/"/g, '').trim(); // Assignee
+
+                    if (sections[status] && title) {
+                        sections[status].count++;
+                        sections[status].html += `
+                            <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 tracking-widest uppercase">ID: ${id}</span>
+                                    <span class="text-[10px] bg-slate-800 text-blue-300 px-2 py-1 rounded-md font-bold border border-slate-700">${name}</span>
+                                </div>
+                                <h3 class="text-[15px] font-bold text-white leading-tight">${title}</h3>
+                            </div>
+                        `;
+                    }
+                });
+
+                // Update columns and counters
+                Object.values(sections).forEach(sec => {
+                    document.getElementById(sec.id).innerHTML = sec.html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
+                    document.getElementById(sec.counter).innerText = sec.count;
+                });
+
+                document.getElementById('sync-status').innerText = "LIVE • UPDATED: " + new Date().toLocaleTimeString();
+                document.getElementById('status-dot').classList.replace('bg-red-500', 'bg-green-500');
+            } catch (e) {
+                console.error("Fetch Error:", e);
+                document.getElementById('sync-status').innerText = "RECONNECTING...";
+                document.getElementById('status-dot').classList.replace('bg-green-500', 'bg-red-500');
+            }
+        }
+
+        // Run updates
+        setInterval(updateDashboard, 15000);
+        setInterval(() => { 
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); 
+        }, 1000);
+        updateDashboard();
+    </script
