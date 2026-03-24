@@ -16,13 +16,13 @@
         }
         #remarks-modal.hidden { display: none !important; }
         
-        /* Force larger text for the badges */
+        /* Typography Scale */
         .member-badge {
-            font-size: 14px !important; /* Made names bigger */
+            font-size: 14px !important;
             letter-spacing: 0.05em;
         }
         .task-id-label {
-            font-size: 11px !important; /* Made Task ID bigger */
+            font-size: 11px !important;
         }
     </style>
 </head>
@@ -61,6 +61,7 @@
             </h2>
             <div id="col-progress" class="space-y-4"></div>
         </div>
+        
         <div>
             <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500 mb-6 uppercase text-xs font-black">
                 <span class="text-orange-400 tracking-widest">On Hold</span>
@@ -68,6 +69,7 @@
             </h2>
             <div id="col-hold" class="space-y-4"></div>
         </div>
+
         <div>
             <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green mb-6 uppercase text-xs font-black">
                 <span class="strateq-green tracking-widest">Completed</span>
@@ -80,12 +82,14 @@
     <script>
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
+        // Member Theme Configuration
         const memberStyles = {
             "mahind": "bg-indigo-500/20 text-indigo-300 border-indigo-500/50",
             "boon": "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/50",
             "safwan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/50",
             "wai ming": "bg-purple-500/20 text-purple-300 border-purple-500/50",
             "shoma": "bg-rose-500/20 text-rose-300 border-rose-500/50",
+            "azizan": "bg-amber-500/20 text-amber-300 border-amber-500/50", // New style for Azizan
             "default": "bg-slate-800 text-slate-400 border-slate-700"
         };
 
@@ -119,7 +123,7 @@
                     const rawName = (row[3] || "Unassigned").replace(/"/g, '').trim();
                     const remarks = (row[4] || "").replace(/"/g, '').trim(); 
 
-                    // Logic for 2 names: Split by "/" and check the first person's name for the color
+                    // Multi-name handling: check the first name in the string
                     const firstName = rawName.split('/')[0].trim().toLowerCase();
                     const colorStyle = memberStyles[firstName] || memberStyles["default"];
 
@@ -157,6 +161,7 @@
             }
         }
 
+        // Intervals for Clock and Data Refresh
         setInterval(updateDashboard, 15000);
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
         updateDashboard();
