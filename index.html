@@ -6,20 +6,29 @@
     <title>Strateq Technical Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Strateq Brand Colors */
         .strateq-navy { background-color: #0b1120; }
         .strateq-green { color: #8dc63f; }
         .bg-strateq-green { background-color: #8dc63f; }
-        .border-strateq-green { border-color: #8dc63f; }
-        
         .glass-card {
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        /* Modal Animation */
+        .modal-hidden { display: none; }
     </style>
 </head>
 <body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
+
+    <div id="remarks-modal" class="modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Remarks</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap"></p>
+        </div>
+    </div>
 
     <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
         <div>
@@ -28,53 +37,54 @@
             </h1>
             <div class="flex items-center gap-2 mt-2">
                 <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#8dc63f]"></div>
-                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">Establishing Link...</p>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">Syncing...</p>
             </div>
         </div>
-
         <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl text-center md:text-right min-w-[260px]">
             <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
-            <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-[0.3em] font-black italic">Live Ops Feed</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-        
-        <div class="space-y-6">
-            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500">
-                <span class="text-blue-400 font-black uppercase tracking-widest text-xs">In Progress</span>
+        <div>
+            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-6">
+                <span class="text-blue-400 font-black uppercase text-xs">In Progress</span>
                 <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
             <div id="col-progress" class="space-y-4"></div>
         </div>
-
-        <div class="space-y-6">
-            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500">
-                <span class="text-orange-400 font-black uppercase tracking-widest text-xs">On Hold</span>
+        <div>
+            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500 mb-6">
+                <span class="text-orange-400 font-black uppercase text-xs">On Hold</span>
                 <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
             <div id="col-hold" class="space-y-4"></div>
         </div>
-
-        <div class="space-y-6">
-            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green">
-                <span class="strateq-green font-black uppercase tracking-widest text-xs">Completed</span>
+        <div>
+            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green mb-6">
+                <span class="strateq-green font-black uppercase text-xs">Completed</span>
                 <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
             <div id="col-completed" class="space-y-4"></div>
         </div>
-
     </div>
 
     <script>
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
+        function openModal(text) {
+            document.getElementById('modal-content').innerText = text;
+            document.getElementById('remarks-modal').classList.remove('modal-hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('remarks-modal').classList.add('modal-hidden');
+        }
+
         async function updateDashboard() {
             try {
                 const response = await fetch(`${CSV_URL}&nocache=${Date.now()}`);
                 const data = await response.text();
-                
-                // Using a more robust split for CSV formatting
                 const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
                 
                 const cols = {
@@ -89,16 +99,23 @@
                     const title = row[1].replace(/"/g, '').trim();
                     const status = row[2].replace(/"/g, '').trim();
                     const name = (row[3] || "Unassigned").replace(/"/g, '').trim();
+                    const remarks = (row[4] || "").replace(/"/g, '').trim(); // Column E
 
                     if (cols[status] && title) {
                         cols[status].count++;
+                        
+                        // Only show button if remarks exist
+                        const remarksBtn = remarks ? 
+                            `<button onclick="openModal('${remarks.replace(/'/g, "\\'")}')" class="mt-3 text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-300 px-2 py-1 rounded border border-slate-600 transition-colors">💬 View Remarks</button>` : '';
+
                         cols[status].html += `
                             <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
                                 <div class="flex justify-between items-center mb-4">
                                     <span class="text-[9px] font-black text-slate-500 tracking-widest uppercase">ID: ${no}</span>
                                     <span class="text-[10px] bg-slate-800 text-blue-300 px-2 py-1 rounded-md font-bold border border-slate-700">${name}</span>
                                 </div>
-                                <h3 class="text-[15px] font-bold text-white leading-tight">${title}</h3>
+                                <h3 class="text-[14px] font-bold text-white leading-tight">${title}</h3>
+                                ${remarksBtn}
                             </div>
                         `;
                     }
@@ -109,18 +126,15 @@
                     document.getElementById(cols[key].counter).innerText = cols[key].count;
                 });
 
-                document.getElementById('sync-status').innerText = "SYSTEM LIVE • UPDATED: " + new Date().toLocaleTimeString();
-                document.getElementById('status-dot').className = "h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#8dc63f]";
-
+                document.getElementById('sync-status').innerText = "SYSTEM LIVE • " + new Date().toLocaleTimeString();
             } catch (e) {
-                document.getElementById('sync-status').innerText = "LINK BUSY - RETRYING...";
-                document.getElementById('status-dot').className = "h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]";
+                document.getElementById('sync-status').innerText = "LINK BUSY...";
             }
         }
 
         setInterval(updateDashboard, 15000);
         setInterval(() => { 
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); 
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString(); 
         }, 1000);
         updateDashboard();
     </script>
