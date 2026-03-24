@@ -7,76 +7,57 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(8px);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .strateq-green { color: #8dc63f; }
         .bg-strateq-green { background-color: #8dc63f; }
     </style>
 </head>
-<body class="bg-[#0b1120] text-slate-100 p-4 md:p-8 font-sans min-h-screen">
+<body class="bg-[#0b1120] text-slate-100 p-8 font-sans min-h-screen">
 
-    <div class="flex flex-col lg:flex-row justify-between items-center mb-8 border-b border-slate-800 pb-6 gap-6">
-        <div class="flex items-center gap-6">
-            <div class="bg-white p-2 rounded-lg shadow-lg">
-                <img src="https://www.strateqgroup.com/wp-content/uploads/2021/05/strateq-logo.png" 
-                     alt="Strateq" 
-                     class="h-10 object-contain"
-                     onerror="this.onerror=null;this.src='https://logo.clearbit.com/strateqgroup.com';">
-            </div>
-            <div>
-                <h1 class="text-2xl font-black text-white tracking-tight uppercase">Technical <span class="strateq-green">Team</span></h1>
-                <p id="sync-status" class="text-[10px] text-slate-500 font-mono tracking-widest uppercase">Initializing System...</p>
+    <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-tight">
+                Technical <span class="strateq-green">Team</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-2">
+                <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_#8dc63f]"></div>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Live</p>
             </div>
         </div>
 
-        <div class="bg-slate-900/50 px-8 py-3 rounded-xl border border-slate-800 text-center">
-            <p id="clock" class="text-3xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
-            <p class="text-[9px] text-slate-500 mt-2 uppercase tracking-[0.2em] font-bold">Live Operations Feed</p>
+        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl text-center md:text-right min-w-[260px]">
+            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
+            <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-[0.3em] font-black">Live Operations Feed</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
         
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center bg-blue-500/10 p-2 rounded-lg border-l-4 border-blue-500">
-                <span class="text-blue-400 font-bold uppercase text-[10px] tracking-wider">In Progress</span>
-                <span id="count-progress" class="text-white text-[10px] font-bold">0</span>
+        <div class="space-y-6">
+            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500">
+                <span class="text-blue-400 font-black uppercase tracking-widest text-xs">In Progress</span>
+                <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
-            <div id="col-progress" class="space-y-3"></div>
+            <div id="col-progress" class="space-y-4"></div>
         </div>
 
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center bg-purple-500/10 p-2 rounded-lg border-l-4 border-purple-500">
-                <span class="text-purple-400 font-bold uppercase text-[10px] tracking-wider">Review / Testing</span>
-                <span id="count-review" class="text-white text-[10px] font-bold">0</span>
+        <div class="space-y-6">
+            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500">
+                <span class="text-orange-400 font-black uppercase tracking-widest text-xs uppercase">On Hold</span>
+                <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
-            <div id="col-review" class="space-y-3"></div>
+            <div id="col-hold" class="space-y-4"></div>
         </div>
 
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center bg-orange-500/10 p-2 rounded-lg border-l-4 border-orange-500">
-                <span class="text-orange-400 font-bold uppercase text-[10px] tracking-wider">On Hold</span>
-                <span id="count-hold" class="text-white text-[10px] font-bold">0</span>
+        <div class="space-y-6">
+            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green">
+                <span class="strateq-green font-black uppercase tracking-widest text-xs uppercase">Completed</span>
+                <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
             </h2>
-            <div id="col-hold" class="space-y-3"></div>
-        </div>
-
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center bg-red-500/10 p-2 rounded-lg border-l-4 border-red-500">
-                <span class="text-red-400 font-bold uppercase text-[10px] tracking-wider">Pending / Blocked</span>
-                <span id="count-pending" class="text-white text-[10px] font-bold">0</span>
-            </h2>
-            <div id="col-pending" class="space-y-3"></div>
-        </div>
-
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center bg-strateq-green/10 p-2 rounded-lg border-l-4 border-strateq-green">
-                <span class="strateq-green font-bold uppercase text-[10px] tracking-wider">Completed</span>
-                <span id="count-completed" class="text-white text-[10px] font-bold">0</span>
-            </h2>
-            <div id="col-completed" class="space-y-3"></div>
+            <div id="col-completed" class="space-y-4"></div>
         </div>
 
     </div>
@@ -86,55 +67,16 @@
 
         async function updateDashboard() {
             try {
-                const response = await fetch(`${CSV_URL}&nocache=${Date.now()}`);
+                const response = await fetch(`${CSV_URL}&cache=${Date.now()}`);
                 const data = await response.text();
                 const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
                 
                 const sections = {
                     'In Progress': { html: '', count: 0, id: 'col-progress', counter: 'count-progress' },
-                    'Review / Testing': { html: '', count: 0, id: 'col-review', counter: 'count-review' },
                     'On Hold': { html: '', count: 0, id: 'col-hold', counter: 'count-hold' },
-                    'Pending / Blocked': { html: '', count: 0, id: 'col-pending', counter: 'count-pending' },
                     'Completed': { html: '', count: 0, id: 'col-completed', counter: 'count-completed' }
                 };
 
                 rows.forEach(row => {
                     if (row.length < 3) return;
-                    const id = row[0].replace(/"/g, '').trim();
-                    const title = row[1].replace(/"/g, '').trim();
-                    const status = row[2].replace(/"/g, '').trim();
-                    const name = (row[3] || "N/A").replace(/"/g, '').trim();
-
-                    if (sections[status] && title) {
-                        sections[status].count++;
-                        sections[status].html += `
-                            <div class="glass-card p-4 rounded-xl shadow-sm border-l-2 border-slate-700">
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">ID: ${id}</span>
-                                    <span class="text-[9px] text-blue-300 font-bold">${name}</span>
-                                </div>
-                                <h3 class="text-[12px] font-semibold text-white leading-snug">${title}</h3>
-                            </div>
-                        `;
-                    }
-                });
-
-                Object.values(sections).forEach(sec => {
-                    document.getElementById(sec.id).innerHTML = sec.html || '<p class="text-slate-800 text-center text-[10px] py-4">---</p>';
-                    document.getElementById(sec.counter).innerText = sec.count;
-                });
-
-                document.getElementById('sync-status').innerText = "LIVE • UPDATED: " + new Date().toLocaleTimeString();
-            } catch (e) {
-                document.getElementById('sync-status').innerText = "RECONNECTING...";
-            }
-        }
-
-        setInterval(updateDashboard, 15000);
-        setInterval(() => { 
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString(); 
-        }, 1000);
-        updateDashboard();
-    </script>
-</body>
-</html>
+                    const id =
