@@ -3,144 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technical Team Command Center</title>
+    <title>Technical Team Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-
-        :root {
-            --strateq-green: #8dc63f;
-            --navy-deep: #050914;
-        }
-
-        body {
-            background-color: var(--navy-deep);
-            font-family: 'Space Grotesk', sans-serif;
-            overflow-x: hidden;
-        }
-
-        /* Fancy Animated Background */
-        .bg-grid {
-            position: fixed;
-            inset: 0;
-            background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -1;
-        }
-
-        .bg-glow {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(141, 198, 63, 0.05), transparent 70%);
-            z-index: -1;
-        }
-
-        /* Glass Card with Hover Animation */
+        .strateq-navy { background-color: #0b1120; }
+        .strateq-green { color: #8dc63f; }
+        .bg-strateq-green { background-color: #8dc63f; }
         .glass-card {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
-            overflow: hidden;
+            z-index: 10;
         }
-
-        .glass-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: var(--strateq-green);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 15px rgba(141, 198, 63, 0.2);
-        }
-
-        /* Status Pulse */
-        .pulse-green {
-            box-shadow: 0 0 0 0 rgba(141, 198, 63, 0.7);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            70% { box-shadow: 0 0 0 10px rgba(141, 198, 63, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(141, 198, 63, 0); }
-        }
-
+        #remarks-modal.hidden { display: none !important; }
+        
         .member-badge {
-            font-size: 13px !important;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            font-size: 14px !important;
+            letter-spacing: 0.05em;
+        }
+        .task-id-label {
+            font-size: 11px !important;
         }
 
-        /* Watermark Text */
-        .watermark {
+        /* Fixed Watermark - Built-in Logo */
+        body::before {
+            content: "";
             position: fixed;
-            bottom: -5%;
-            right: -5%;
-            font-size: 20vw;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px; /* Large watermark */
+            height: 400px;
+            /* Using a reliable placeholder for the Strateq shape if external link fails */
+            background-image: url("https://www.strateqgroup.com/images/logo.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.05; 
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Backup layer in case the image above still blocks */
+        .watermark-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 15vw;
             font-weight: 900;
             color: white;
             opacity: 0.02;
             pointer-events: none;
-            z-index: -1;
-            user-select: none;
+            z-index: 0;
+            text-transform: uppercase;
         }
     </style>
 </head>
-<body class="text-slate-100 p-6 min-h-screen">
+<body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
 
-    <div class="bg-grid"></div>
-    <div class="bg-glow"></div>
-    <div class="watermark">STRATEQ</div>
+    <div class="watermark-text">STRATEQ</div>
 
-    <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 bg-slate-900/40 p-6 rounded-3xl border border-white/5">
-        <div class="flex items-center gap-5">
-            <div class="p-3 bg-white rounded-xl shadow-lg">
-                <img src="https://www.strateqgroup.com/images/logo.png" alt="Logo" class="h-8">
+    <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Comments</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
             </div>
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight">TECH OPS <span class="text-[#8dc63f]">OS</span></h1>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#8dc63f] pulse-green"></span>
-                    <span id="sync-status" class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">System Nominal</span>
-                </div>
+            <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2"></p>
+        </div>
+    </div>
+
+    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
+                Technical Team <span class="strateq-green">Dashboard</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-2">
+                <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#8dc63f]"></div>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
             </div>
         </div>
-        <div class="text-right">
-            <div id="clock" class="text-5xl font-light tracking-tighter tabular-nums">00:00:00</div>
-            <div class="text-[10px] uppercase tracking-widest text-[#8dc63f] font-bold">Real-time Telemetry</div>
+        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl">
+            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
         </div>
-    </header>
+    </div>
 
-    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <section>
-            <div class="flex justify-between items-end mb-6 px-2">
-                <h2 class="text-blue-400 font-bold uppercase tracking-widest text-sm">Active Sprints</h2>
-                <span id="count-progress" class="text-3xl font-light text-blue-500">0</span>
-            </div>
-            <div id="col-progress" class="space-y-5"></div>
-        </section>
+    <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div>
+            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-6 uppercase text-xs font-black">
+                <span class="text-blue-400 tracking-widest">In Progress</span>
+                <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full">0</span>
+            </h2>
+            <div id="col-progress" class="space-y-4"></div>
+        </div>
+        
+        <div>
+            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500 mb-6 uppercase text-xs font-black">
+                <span class="text-orange-400 tracking-widest">On Hold</span>
+                <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full">0</span>
+            </h2>
+            <div id="col-hold" class="space-y-4"></div>
+        </div>
 
-        <section>
-            <div class="flex justify-between items-end mb-6 px-2">
-                <h2 class="text-orange-400 font-bold uppercase tracking-widest text-sm">Paused / Queue</h2>
-                <span id="count-hold" class="text-3xl font-light text-orange-500">0</span>
-            </div>
-            <div id="col-hold" class="space-y-5"></div>
-        </section>
-
-        <section>
-            <div class="flex justify-between items-end mb-6 px-2">
-                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Deployment Ready</h2>
-                <span id="count-completed" class="text-3xl font-light text-[#8dc63f]">0</span>
-            </div>
-            <div id="col-completed" class="space-y-5"></div>
-        </section>
-    </main>
-
-    <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="bg-slate-900 border border-[#8dc63f]/30 w-full max-w-lg rounded-3xl p-8 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-[#8dc63f] font-bold uppercase tracking-widest">Internal Log</h3>
-                <button onclick="closeModal()" class="text-slate-500 hover:text-white transition-colors text-2xl">&times;</button>
-            </div>
-            <div id="modal-content" class="text-slate-300 font-light leading-relaxed text-lg italic"></div>
+        <div>
+            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green mb-6 uppercase text-xs font-black">
+                <span class="strateq-green tracking-widest">Completed</span>
+                <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full">0</span>
+            </h2>
+            <div id="col-completed" class="space-y-4"></div>
         </div>
     </div>
 
@@ -148,16 +120,17 @@
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
         const memberStyles = {
-            "mahind": "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
-            "boon": "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/40",
-            "safwan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
-            "wai ming": "bg-purple-500/20 text-purple-300 border-purple-500/40",
-            "shoma": "bg-rose-500/20 text-rose-300 border-rose-500/40",
-            "azizan": "bg-amber-500/20 text-amber-300 border-amber-500/40",
+            "mahind": "bg-indigo-500/20 text-indigo-300 border-indigo-500/50",
+            "boon": "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/50",
+            "safwan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/50",
+            "wai ming": "bg-purple-500/20 text-purple-300 border-purple-500/50",
+            "shoma": "bg-rose-500/20 text-rose-300 border-rose-500/50",
+            "azizan": "bg-amber-500/20 text-amber-300 border-amber-500/50",
             "default": "bg-slate-800 text-slate-400 border-slate-700"
         };
 
         function openModal(text) {
+            if(!text || text.trim() === "") return;
             document.getElementById('modal-content').innerText = text;
             document.getElementById('remarks-modal').classList.remove('hidden');
         }
@@ -193,15 +166,19 @@
                         cols[status].count++;
                         
                         const commentBtn = remarks ? 
-                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full py-2 rounded-xl bg-white/5 hover:bg-[#8dc63f]/20 hover:text-[#8dc63f] transition-all border border-white/10 text-[10px] uppercase tracking-widest font-bold">View Comms</button>` : '';
+                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[12px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
 
                         cols[status].html += `
-                            <div class="glass-card p-6 rounded-3xl group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[10px] font-bold text-slate-500 tracking-[0.2em]">ID_${id}</span>
-                                    <span class="member-badge px-3 py-1 rounded-lg border font-medium ${colorStyle}">${rawName}</span>
+                            <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
+                                <div class="flex flex-col gap-2 mb-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="task-id-label font-black text-slate-500 uppercase tracking-widest">TASK: ${id}</span>
+                                        <span class="member-badge font-bold px-4 py-1.5 rounded-full border shadow-md uppercase ${colorStyle}">
+                                            ${rawName}
+                                        </span>
+                                    </div>
                                 </div>
-                                <h3 class="text-lg font-medium text-white group-hover:text-[#8dc63f] transition-colors leading-snug">${title}</h3>
+                                <h3 class="text-[16px] font-bold text-white leading-tight mb-2">${title}</h3>
                                 ${commentBtn}
                             </div>
                         `;
@@ -209,20 +186,18 @@
                 });
 
                 Object.keys(cols).forEach(key => {
-                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<div class="opacity-20 text-center py-10">NO DATA</div>';
+                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
                     document.getElementById(cols[key].counter).innerText = cols[key].count;
                 });
 
-                document.getElementById('sync-status').innerText = "Last Sync: " + new Date().toLocaleTimeString();
+                document.getElementById('sync-status').innerText = "LIVE • " + new Date().toLocaleTimeString();
             } catch (e) {
-                console.error(e);
+                document.getElementById('sync-status').innerText = "RECONNECTING...";
             }
         }
 
         setInterval(updateDashboard, 15000);
-        setInterval(() => { 
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); 
-        }, 1000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
         updateDashboard();
     </script>
 </body>
