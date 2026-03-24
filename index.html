@@ -6,87 +6,102 @@
     <title>Technical Team Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .strateq-navy { background-color: #0b1120; }
+        /* Base Colors & Background */
+        .strateq-navy { background-color: #050914; } /* Slightly deeper navy for more contrast */
         .strateq-green { color: #8dc63f; }
         .bg-strateq-green { background-color: #8dc63f; }
+
+        /* Fancy Animated Background Grid */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Enhanced Glass Cards */
         .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             position: relative;
             z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        .glass-card:hover {
+            transform: translateY(-4px);
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(141, 198, 63, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
         #remarks-modal.hidden { display: none !important; }
         
         .member-badge {
             font-size: 14px !important;
             letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
         .task-id-label {
             font-size: 11px !important;
         }
 
-        /* Fixed Watermark - Built-in Logo */
+        /* Status Dot Pulse Animation */
+        .pulse-dot {
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(141, 198, 63, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(141, 198, 63, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(141, 198, 63, 0); }
+        }
+
+        /* Watermark - Transparent Strateq Logo */
         body::before {
             content: "";
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 800px; /* Large watermark */
+            width: 800px;
             height: 400px;
-            /* Using a reliable placeholder for the Strateq shape if external link fails */
             background-image: url("https://www.strateqgroup.com/images/logo.png");
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
-            opacity: 0.05; 
+            opacity: 0.04; 
             z-index: 0;
             pointer-events: none;
         }
 
-        /* Backup layer in case the image above still blocks */
-        .watermark-text {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            font-size: 15vw;
-            font-weight: 900;
-            color: white;
-            opacity: 0.02;
-            pointer-events: none;
-            z-index: 0;
-            text-transform: uppercase;
-        }
+        /* Stealth Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(141, 198, 63, 0.2); border-radius: 10px; }
     </style>
 </head>
 <body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
 
-    <div class="watermark-text">STRATEQ</div>
-
-    <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
-                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Comments</h2>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-            <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2"></p>
-        </div>
-    </div>
-
-    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-white/10 pb-8 gap-6">
         <div>
-            <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
+                <span class="bg-white p-1 rounded-md"><img src="https://www.strateqgroup.com/images/logo.png" class="h-6"></span>
                 Technical Team <span class="strateq-green">Dashboard</span>
             </h1>
             <div class="flex items-center gap-2 mt-2">
-                <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#8dc63f]"></div>
+                <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 pulse-dot"></div>
                 <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
             </div>
         </div>
-        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl">
-            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
+        <div class="bg-slate-900/60 backdrop-blur-md px-10 py-4 rounded-3xl border border-white/5 shadow-2xl">
+            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none tracking-tighter">00:00:00</p>
         </div>
     </div>
 
@@ -113,6 +128,16 @@
                 <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full">0</span>
             </h2>
             <div id="col-completed" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Comments</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2 italic font-light"></p>
         </div>
     </div>
 
@@ -143,7 +168,7 @@
             try {
                 const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
                 const data = await response.text();
-                const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
+                const rows = data.split('\n').map(row => row.split(/,(?=(?:multiline|[^"]*"){2})*[^"]*$)/)).slice(1);
                 
                 const cols = {
                     'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress' },
@@ -155,50 +180,4 @@
                     if (row.length < 3) return;
                     const id = row[0].replace(/"/g, '').trim();
                     const title = row[1].replace(/"/g, '').trim();
-                    const status = row[2].replace(/"/g, '').trim();
-                    const rawName = (row[3] || "Unassigned").replace(/"/g, '').trim();
-                    const remarks = (row[4] || "").replace(/"/g, '').trim(); 
-
-                    const firstName = rawName.split('/')[0].trim().toLowerCase();
-                    const colorStyle = memberStyles[firstName] || memberStyles["default"];
-
-                    if (cols[status] && title) {
-                        cols[status].count++;
-                        
-                        const commentBtn = remarks ? 
-                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[12px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
-
-                        cols[status].html += `
-                            <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
-                                <div class="flex flex-col gap-2 mb-3">
-                                    <div class="flex justify-between items-center">
-                                        <span class="task-id-label font-black text-slate-500 uppercase tracking-widest">TASK: ${id}</span>
-                                        <span class="member-badge font-bold px-4 py-1.5 rounded-full border shadow-md uppercase ${colorStyle}">
-                                            ${rawName}
-                                        </span>
-                                    </div>
-                                </div>
-                                <h3 class="text-[16px] font-bold text-white leading-tight mb-2">${title}</h3>
-                                ${commentBtn}
-                            </div>
-                        `;
-                    }
-                });
-
-                Object.keys(cols).forEach(key => {
-                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
-                    document.getElementById(cols[key].counter).innerText = cols[key].count;
-                });
-
-                document.getElementById('sync-status').innerText = "LIVE • " + new Date().toLocaleTimeString();
-            } catch (e) {
-                document.getElementById('sync-status').innerText = "RECONNECTING...";
-            }
-        }
-
-        setInterval(updateDashboard, 15000);
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-        updateDashboard();
-    </script>
-</body>
-</html>
+                    const status = row[2].replace(/"/g
