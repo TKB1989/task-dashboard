@@ -14,7 +14,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        /* Strict Hidden State */
+        /* Strict Hidden State for Modal */
         #remarks-modal.hidden { display: none !important; }
     </style>
 </head>
@@ -23,7 +23,7 @@
     <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
-                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Remarks</h2>
+                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Comments</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
             </div>
             <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2"></p>
@@ -70,7 +70,6 @@
     <script>
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
-        // Fix for the modal sticking
         function openModal(text) {
             if(!text || text.trim() === "") return;
             document.getElementById('modal-content').innerText = text;
@@ -79,13 +78,13 @@
 
         function closeModal() {
             document.getElementById('remarks-modal').classList.add('hidden');
-            document.getElementById('modal-content').innerText = "";
         }
 
         async function updateDashboard() {
             try {
                 const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
                 const data = await response.text();
+                // Safe CSV parsing
                 const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
                 
                 const cols = {
@@ -105,9 +104,9 @@
                     if (cols[status] && title) {
                         cols[status].count++;
                         
-                        // Remarks logic
-                        const remarksBtn = remarks ? 
-                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[10px] bg-slate-800 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-tighter">💬 Click for Remarks</button>` : '';
+                        // Button text changed to "Comment"
+                        const commentBtn = remarks ? 
+                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[10px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
 
                         cols[status].html += `
                             <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
@@ -116,14 +115,14 @@
                                     <span class="text-[10px] text-blue-300 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">${name}</span>
                                 </div>
                                 <h3 class="text-[14px] font-bold text-white leading-tight">${title}</h3>
-                                ${remarksBtn}
+                                ${commentBtn}
                             </div>
                         `;
                     }
                 });
 
                 Object.keys(cols).forEach(key => {
-                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">Waiting for tasks...</p>';
+                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
                     document.getElementById(cols[key].counter).innerText = cols[key].count;
                 });
 
