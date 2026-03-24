@@ -2,123 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strateq Technical Dashboard</title>
+    <title>Technical Team Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .strateq-green { color: #8dc63f; }
-        .bg-strateq-green { background-color: #8dc63f; }
-    </style>
 </head>
-<body class="bg-[#0b1120] text-slate-100 p-8 font-sans min-h-screen">
+<body class="bg-slate-900 text-slate-100 p-8 font-sans">
 
-    <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+    <div class="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
         <div>
-            <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-tight">
-                Technical <span class="strateq-green">Team</span>
-            </h1>
-            <div class="flex items-center gap-2 mt-2">
-                <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_#8dc63f]"></div>
-                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">Initializing Sync...</p>
-            </div>
+            <h1 class="text-3xl font-black text-white tracking-tighter uppercase">Technical Team <span class="text-blue-500">Task Dashboard</span></h1>
+            <p id="sync-status" class="text-orange-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold animate-pulse">Establishing Direct Link...</p>
         </div>
-
-        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl text-center md:text-right min-w-[260px]">
-            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
-            <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-[0.3em] font-black">Live Operations Feed</p>
+        <div class="bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 shadow-inner">
+            <p id="clock" class="text-2xl font-mono font-bold text-blue-400">00:00:00</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-        <div class="space-y-6">
-            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500">
-                <span class="text-blue-400 font-black uppercase tracking-widest text-xs">In Progress</span>
-                <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+            <h2 class="text-blue-400 font-bold uppercase tracking-widest text-xs mb-6 flex justify-between">
+                <span>🔵 In Progress</span>
+                <span id="count-progress" class="text-slate-500">0</span>
             </h2>
             <div id="col-progress" class="space-y-4"></div>
         </div>
-
-        <div class="space-y-6">
-            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500">
-                <span class="text-orange-400 font-black uppercase tracking-widest text-xs">On Hold</span>
-                <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
+        <div>
+            <h2 class="text-orange-400 font-bold uppercase tracking-widest text-xs mb-6 flex justify-between">
+                <span>⏸️ On Hold</span>
+                <span id="count-hold" class="text-slate-500">0</span>
             </h2>
             <div id="col-hold" class="space-y-4"></div>
         </div>
-
-        <div class="space-y-6">
-            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green">
-                <span class="strateq-green font-black uppercase tracking-widest text-xs">Completed</span>
-                <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full text-[11px] font-bold">0</span>
+        <div>
+            <h2 class="text-emerald-400 font-bold uppercase tracking-widest text-xs mb-6 flex justify-between">
+                <span>✅ Completed</span>
+                <span id="count-completed" class="text-slate-500">0</span>
             </h2>
             <div id="col-completed" class="space-y-4"></div>
         </div>
     </div>
 
     <script>
-        // Use the published CSV URL from your Google Sheet
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
         async function updateDashboard() {
             try {
-                // Force cache-busting to ensure live data
-                const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
+                // No proxy - direct fetch with cache buster
+                const response = await fetch(`${CSV_URL}&nocache=${Date.now()}`);
                 const data = await response.text();
                 
-                // Parse CSV rows
-                const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
+                // Split rows and filter empty lines
+                const rows = data.split('\n').map(row => row.split(',')).slice(1);
                 
-                const sections = {
-                    'In Progress': { html: '', count: 0, id: 'col-progress', counter: 'count-progress' },
-                    'On Hold': { html: '', count: 0, id: 'col-hold', counter: 'count-hold' },
-                    'Completed': { html: '', count: 0, id: 'col-completed', counter: 'count-completed' }
+                // Clear columns
+                const cols = {
+                    'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress' },
+                    'On Hold': { html: '', count: 0, div: 'col-hold', counter: 'count-hold' },
+                    'Completed': { html: '', count: 0, div: 'col-completed', counter: 'count-completed' }
                 };
 
                 rows.forEach(row => {
                     if (row.length < 3) return;
-                    const id = row[0].replace(/"/g, '').trim(); // No.
-                    const title = row[1].replace(/"/g, '').trim(); // Title
-                    const status = row[2].replace(/"/g, '').trim(); // Status
-                    const name = (row[3] || "N/A").replace(/"/g, '').trim(); // Assignee
+                    const no = row[0].trim();
+                    const title = row[1].trim();
+                    const status = row[2].trim();
+                    const name = (row[3] || "Unassigned").trim();
 
-                    if (sections[status] && title) {
-                        sections[status].count++;
-                        sections[status].html += `
-                            <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
-                                <div class="flex justify-between items-center mb-4">
-                                    <span class="text-[9px] font-black text-slate-500 tracking-widest uppercase">ID: ${id}</span>
-                                    <span class="text-[10px] bg-slate-800 text-blue-300 px-2 py-1 rounded-md font-bold border border-slate-700">${name}</span>
+                    if (cols[status]) {
+                        cols[status].count++;
+                        cols[status].html += `
+                            <div class="bg-slate-800/60 border border-slate-700 p-5 rounded-2xl shadow-xl hover:border-blue-500/30 transition-all">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase">Task #${no}</span>
+                                    <span class="text-[10px] text-blue-400 font-bold">${name}</span>
                                 </div>
-                                <h3 class="text-[15px] font-bold text-white leading-tight">${title}</h3>
+                                <h3 class="text-sm font-semibold text-slate-100">${title}</h3>
                             </div>
                         `;
                     }
                 });
 
-                // Update columns and counters
-                Object.values(sections).forEach(sec => {
-                    document.getElementById(sec.id).innerHTML = sec.html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
-                    document.getElementById(sec.counter).innerText = sec.count;
+                // Render
+                Object.keys(cols).forEach(key => {
+                    document.getElementById(cols[key].div).innerHTML = cols[key].html;
+                    document.getElementById(cols[key].counter).innerText = cols[key].count;
                 });
 
-                document.getElementById('sync-status').innerText = "LIVE • UPDATED: " + new Date().toLocaleTimeString();
-                document.getElementById('status-dot').classList.replace('bg-red-500', 'bg-green-500');
+                document.getElementById('sync-status').innerText = "SYSTEM LIVE • " + new Date().toLocaleTimeString();
+                document.getElementById('sync-status').className = "text-green-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold";
+
             } catch (e) {
-                console.error("Fetch Error:", e);
-                document.getElementById('sync-status').innerText = "RECONNECTING...";
-                document.getElementById('status-dot').classList.replace('bg-green-500', 'bg-red-500');
+                document.getElementById('sync-status').innerText = "LINK BUSY - RETRYING...";
             }
         }
 
-        // Run updates
         setInterval(updateDashboard, 15000);
-        setInterval(() => { 
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); 
-        }, 1000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
         updateDashboard();
-    </script
+    </script>
+</body>
+</html>
