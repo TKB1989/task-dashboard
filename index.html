@@ -16,11 +16,10 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
             z-index: 10;
-            overflow: hidden; /* Needed for the shine effect */
+            overflow: hidden;
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        /* The Interactive Shine Effect */
         .glass-card::before {
             content: "";
             position: absolute;
@@ -28,30 +27,19 @@
             left: -100%;
             width: 50%;
             height: 100%;
-            background: linear-gradient(
-                to right,
-                transparent,
-                rgba(255, 255, 255, 0.05),
-                transparent
-            );
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05), transparent);
             transform: skewX(-25deg);
             transition: 0.5s;
         }
 
-        .glass-card:hover::before {
-            left: 150%;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(141, 198, 63, 0.4);
-        }
+        .glass-card:hover::before { left: 150%; }
+        .glass-card:hover { transform: translateY(-2px); border-color: rgba(141, 198, 63, 0.4); }
 
         #remarks-modal.hidden { display: none !important; }
         .member-badge { font-size: 14px !important; letter-spacing: 0.05em; }
         .task-id-label { font-size: 11px !important; }
 
-        /* Subtle Static Grid */
+        /* Background Layers */
         .bg-grid-layer {
             position: fixed;
             inset: 0;
@@ -62,25 +50,19 @@
             pointer-events: none;
         }
 
-        .watermark-layer {
+        /* 🎆 FIREWORKS CANVAS - MOVED BEHIND EVERYTHING 🎆 */
+        #fw-canvas {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 700px;
-            height: 400px;
-            background-image: url("https://www.strateqgroup.com/images/logo.png");
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            opacity: 0.03;
-            z-index: -1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
             pointer-events: none;
+            opacity: 0.4;
         }
 
-        .pulse-dot {
-            animation: pulse-green 2s infinite;
-        }
+        .pulse-dot { animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(141, 198, 63, 0.4); }
             70% { box-shadow: 0 0 0 6px rgba(141, 198, 63, 0); }
@@ -90,8 +72,8 @@
 </head>
 <body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
 
+    <canvas id="fw-canvas"></canvas>
     <div class="bg-grid-layer"></div>
-    <div class="watermark-layer"></div>
 
     <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
         <div>
@@ -163,9 +145,7 @@
             document.getElementById('remarks-modal').classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('remarks-modal').classList.add('hidden');
-        }
+        function closeModal() { document.getElementById('remarks-modal').classList.add('hidden'); }
 
         async function updateDashboard() {
             try {
@@ -192,18 +172,14 @@
 
                     if (cols[status] && title) {
                         cols[status].count++;
-                        
-                        const commentBtn = remarks ? 
-                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[12px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
+                        const commentBtn = remarks ? `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[12px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
 
                         cols[status].html += `
                             <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700">
                                 <div class="flex flex-col gap-2 mb-3">
                                     <div class="flex justify-between items-center">
                                         <span class="task-id-label font-black text-slate-500 uppercase tracking-widest">TASK: ${id}</span>
-                                        <span class="member-badge font-bold px-4 py-1.5 rounded-full border shadow-md uppercase ${colorStyle}">
-                                            ${rawName}
-                                        </span>
+                                        <span class="member-badge font-bold px-4 py-1.5 rounded-full border shadow-md uppercase ${colorStyle}">${rawName}</span>
                                     </div>
                                 </div>
                                 <h3 class="text-[16px] font-bold text-white leading-tight mb-2">${title}</h3>
@@ -217,16 +193,65 @@
                     document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
                     document.getElementById(cols[key].counter).innerText = cols[key].count;
                 });
-
                 document.getElementById('sync-status').innerText = "LIVE • " + new Date().toLocaleTimeString();
-            } catch (e) {
-                document.getElementById('sync-status').innerText = "RECONNECTING...";
-            }
+            } catch (e) { document.getElementById('sync-status').innerText = "RECONNECTING..."; }
         }
 
         setInterval(updateDashboard, 15000);
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
         updateDashboard();
+    </script>
+
+    <script>
+        const canvas = document.getElementById('fw-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.velX = (Math.random() - 0.5) * 6;
+                this.velY = (Math.random() - 0.5) * 6;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+            }
+            update() {
+                this.x += this.velX; this.y += this.velY;
+                this.velY += 0.05; // gravity
+                this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.6);
+            const colors = ['#8dc63f', '#3b82f6', '#f97316', '#ffffff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < 30; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.05) createFirework();
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
     </script>
 </body>
 </html>
