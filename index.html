@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Technical Team Task Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 p-8 font-sans">
+
+    <div class="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
+        <div>
+            <h1 class="text-3xl font-black text-white tracking-tighter uppercase">Technical Team <span class="text-blue-500">Task Dashboard</span></h1>
+            <p id="sync-status" class="text-slate-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold animate-pulse">Syncing Data...</p>
+        </div>
+        <div class="bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 shadow-inner text-right">
+            <p id="clock" class="text-2xl font-mono font-bold text-blue-400 leading-none">00:00:00</p>
+            <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Live Feed</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="space-y-4">
+            <h2 class="flex justify-between items-center text-blue-400 font-bold uppercase tracking-widest text-xs mb-6">
+                <span class="flex items-center gap-2">
+                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+                    In Progress
+                </span>
+                <span id="count-progress" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400 font-mono">0</span>
+            </h2>
+            <div id="col-progress" class="space-y-4"></div>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="flex justify-between items-center text-orange-400 font-bold uppercase tracking-widest text-xs mb-6">
+                <span>⏸️ On Hold</span>
+                <span id="count-hold" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400 font-mono">0</span>
+            </h2>
+            <div id="col-hold" class="space-y-4"></div>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="flex justify-between items-center text-emerald-400 font-bold uppercase tracking-widest text-xs mb-6">
+                <span>✅ Completed</span>
+                <span id="count-completed" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400 font-mono">0</span>
+            </h2>
+            <div id="col-completed" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        // Switch to an alternative proxy for better stability
+        const PROXY = "https://api.allorigins.win/raw?url=";
+        const GOOGLE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
+        
+        async function updateDashboard() {
+            try {
+                // Add timestamp to force Google to give us fresh data without using a "heavy" cache buster
+                const fetchUrl = PROXY + encodeURIComponent(GOOGLE_URL + "&cache=" + Math.floor(Date.now() / 30000));
+                
+                const response = await fetch(fetchUrl);
+                if (!response.ok) throw new Error("Sync Failed");
+                const rawData = await response.text();
+                
+                const rows = rawData.split(/\r?\n/).filter(row => row.trim() !== "").slice(1);
+                
+                let pCount = 0, hCount = 0, cCount = 0;
+                let pHTML = '', hHTML = '', cHTML = '';
+
+                rows.forEach(row => {
+                    // Optimized split for complex characters like / or -
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (cols.length < 3) return;
+
+                    const no = cols[0].replace(/"/g, '').trim();
+                    const title = cols[1].replace(/"/g, '').trim();
+                    const status = cols[2].replace(/"/g, '').trim();
+                    const assignee = (cols[3] || "Unassigned").replace(/"/g, '').trim();
+
+                    if (!title) return;
+
+                    const card = `
+                        <div class="bg-slate-800/60 border border-slate-700 p-5 rounded-2xl shadow-xl hover:border-blue-500/50 transition-all duration-300">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-[10px] font-mono text-slate-500 tracking-tighter uppercase font-bold">No. ${no}</span>
+                                <span class="text-[10px] bg-slate-900 text-blue-400 px-2 py-1 rounded-lg border border-slate-700 font-bold tracking-tight">${assignee}</span>
+                            </div>
+                            <h3 class="text-[15px] font-semibold text-slate-100 leading-snug">${title}</h3>
+                        </div>
+                    `;
+
+                    if (status === "In Progress") { pHTML += card; pCount++; }
+                    else if (status === "On Hold") { hHTML += card; hCount++; }
+                    else if (status === "Completed") { cHTML += card; cCount++; }
+                });
+
+                // Update all at once to prevent flickering
+                document.getElementById('col-progress').innerHTML = pHTML;
+                document.getElementById('col-hold').innerHTML = hHTML;
+                document.getElementById('col-completed').innerHTML = cHTML;
+                document.getElementById('count-progress').innerText = pCount;
+                document.getElementById('count-hold').innerText = hCount;
+                document.getElementById('count-completed').innerText = cCount;
+
+                document.getElementById('sync-status').innerText = "System Live • Updated: " + new Date().toLocaleTimeString();
+                document.getElementById('sync-status').className = "text-green-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold";
+            } catch (err) {
+                document.getElementById('sync-status').innerText = "Syncing... (Waiting for Data)";
+                document.getElementById('sync-status').className = "text-orange-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold animate-pulse";
+            }
+        }
+
+        function startClock() {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // Set refresh to 30 seconds to avoid overwhelming the proxy
+        setInterval(updateDashboard, 30000); 
+        setInterval(startClock, 1000);
+        updateDashboard();
+        startClock();
+    </script>
+</body>
+</html>
