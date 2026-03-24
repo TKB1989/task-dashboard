@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Technical Team Task Dashboard</title>
+    <title>Technical Team Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 p-8 font-sans">
@@ -10,120 +10,94 @@
     <div class="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
         <div>
             <h1 class="text-3xl font-black text-white tracking-tighter uppercase">Technical Team <span class="text-blue-500">Task Dashboard</span></h1>
-            <div class="flex items-center gap-2 mt-1">
-                <div id="status-dot" class="h-2 w-2 rounded-full bg-orange-500 animate-pulse"></div>
-                <p id="sync-status" class="text-slate-500 font-mono text-[10px] tracking-widest uppercase italic font-bold">Initialising Dashboard...</p>
-            </div>
+            <p id="sync-status" class="text-orange-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold animate-pulse">Establishing Direct Link...</p>
         </div>
-        <div class="bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 shadow-inner text-right">
-            <p id="clock" class="text-2xl font-mono font-bold text-blue-400 leading-none">00:00:00</p>
-            <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Live System Feed</p>
+        <div class="bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 shadow-inner">
+            <p id="clock" class="text-2xl font-mono font-bold text-blue-400">00:00:00</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center text-blue-400 font-bold uppercase tracking-widest text-xs mb-6">
-                <span class="flex items-center gap-2">
-                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
-                    In Progress
-                </span>
-                <span id="count-progress" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400 font-mono font-bold">0</span>
+        <div>
+            <h2 class="text-blue-400 font-bold uppercase tracking-widest text-xs mb-6 flex justify-between">
+                <span>🔵 In Progress</span>
+                <span id="count-progress" class="text-slate-500">0</span>
             </h2>
             <div id="col-progress" class="space-y-4"></div>
         </div>
-
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center text-orange-400 font-bold uppercase tracking-widest text-xs mb-6">
+        <div>
+            <h2 class="text-orange-400 font-bold uppercase tracking-widest text-xs mb-6 flex justify-between">
                 <span>⏸️ On Hold</span>
-                <span id="count-hold" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400 font-mono font-bold">0</span>
+                <span id="count-hold" class="text-slate-500">0</span>
             </h2>
             <div id="col-hold" class="space-y-4"></div>
         </div>
-
-        <div class="space-y-4">
-            <h2 class="flex justify-between items-center text-emerald-400 font-bold uppercase tracking-widest text-xs mb-6">
+        <div>
+            <h2 class="text-emerald-400 font-bold uppercase tracking-widest text-xs mb-6 flex justify-between">
                 <span>✅ Completed</span>
-                <span id="count-completed" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400 font-mono font-bold">0</span>
+                <span id="count-completed" class="text-slate-500">0</span>
             </h2>
             <div id="col-completed" class="space-y-4"></div>
         </div>
     </div>
 
     <script>
-        // DIRECT URL - Works best on GitHub Pages
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
         async function updateDashboard() {
             try {
-                // Fetch with a timestamp to bypass Google's cache
-                const response = await fetch(`${SHEET_CSV_URL}&t=${new Date().getTime()}`);
-                if (!response.ok) throw new Error();
-                const rawData = await response.text();
+                // No proxy - direct fetch with cache buster
+                const response = await fetch(`${CSV_URL}&nocache=${Date.now()}`);
+                const data = await response.text();
                 
-                // Parse rows and remove empty ones
-                const rows = rawData.split(/\r?\n/).filter(row => row.trim() !== "").slice(1);
+                // Split rows and filter empty lines
+                const rows = data.split('\n').map(row => row.split(',')).slice(1);
                 
-                let pCount = 0, hCount = 0, cCount = 0;
-                let pHTML = '', hHTML = '', cHTML = '';
+                // Clear columns
+                const cols = {
+                    'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress' },
+                    'On Hold': { html: '', count: 0, div: 'col-hold', counter: 'count-hold' },
+                    'Completed': { html: '', count: 0, div: 'col-completed', counter: 'count-completed' }
+                };
 
                 rows.forEach(row => {
-                    // Optimized split to handle names like "Boon/Mahind"
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (cols.length < 3) return;
+                    if (row.length < 3) return;
+                    const no = row[0].trim();
+                    const title = row[1].trim();
+                    const status = row[2].trim();
+                    const name = (row[3] || "Unassigned").trim();
 
-                    const no = cols[0].replace(/"/g, '').trim();
-                    const title = cols[1].replace(/"/g, '').trim();
-                    const status = cols[2].replace(/"/g, '').trim();
-                    const assignee = (cols[3] || "Unassigned").replace(/"/g, '').trim();
-
-                    if (!title) return;
-
-                    const card = `
-                        <div class="bg-slate-800/60 border border-slate-700 p-5 rounded-2xl shadow-xl hover:border-blue-500/50 transition-all duration-300">
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="text-[10px] font-mono text-slate-500 tracking-tighter uppercase font-bold">TASK #${no}</span>
-                                <span class="text-[10px] bg-slate-900 text-blue-400 px-2 py-1 rounded-lg border border-slate-700 font-bold tracking-tight">${assignee}</span>
+                    if (cols[status]) {
+                        cols[status].count++;
+                        cols[status].html += `
+                            <div class="bg-slate-800/60 border border-slate-700 p-5 rounded-2xl shadow-xl hover:border-blue-500/30 transition-all">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase">Task #${no}</span>
+                                    <span class="text-[10px] text-blue-400 font-bold">${name}</span>
+                                </div>
+                                <h3 class="text-sm font-semibold text-slate-100">${title}</h3>
                             </div>
-                            <h3 class="text-[15px] font-semibold text-slate-100 leading-snug">${title}</h3>
-                        </div>
-                    `;
-
-                    // SORTING LOGIC
-                    if (status === "In Progress") { pHTML += card; pCount++; }
-                    else if (status === "On Hold") { hHTML += card; hCount++; }
-                    else if (status === "Completed") { cHTML += card; cCount++; }
+                        `;
+                    }
                 });
 
-                // Update UI all at once
-                document.getElementById('col-progress').innerHTML = pHTML;
-                document.getElementById('col-hold').innerHTML = hHTML;
-                document.getElementById('col-completed').innerHTML = cHTML;
-                
-                document.getElementById('count-progress').innerText = pCount;
-                document.getElementById('count-hold').innerText = hCount;
-                document.getElementById('count-completed').innerText = cCount;
+                // Render
+                Object.keys(cols).forEach(key => {
+                    document.getElementById(cols[key].div).innerHTML = cols[key].html;
+                    document.getElementById(cols[key].counter).innerText = cols[key].count;
+                });
 
-                // Update Status Bar
-                document.getElementById('sync-status').innerText = "SYSTEM LIVE • UPDATED: " + new Date().toLocaleTimeString();
-                document.getElementById('status-dot').className = "h-2 w-2 rounded-full bg-green-500";
+                document.getElementById('sync-status').innerText = "SYSTEM LIVE • " + new Date().toLocaleTimeString();
                 document.getElementById('sync-status').className = "text-green-500 font-mono text-[10px] mt-1 tracking-widest uppercase italic font-bold";
-            } catch (err) {
-                document.getElementById('sync-status').innerText = "RECONNECTING TO GOOGLE...";
-                document.getElementById('status-dot').className = "h-2 w-2 rounded-full bg-red-500 animate-pulse";
+
+            } catch (e) {
+                document.getElementById('sync-status').innerText = "LINK BUSY - RETRYING...";
             }
         }
 
-        function startClock() {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
-
-        // Set refresh to 20 seconds for professional balance
-        setInterval(updateDashboard, 20000); 
-        setInterval(startClock, 1000);
+        setInterval(updateDashboard, 15000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
         updateDashboard();
-        startClock();
     </script>
 </body>
 </html>
