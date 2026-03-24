@@ -1,100 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technical Team Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .strateq-navy { background-color: #0b1120; }
-        .strateq-green { color: #8dc63f; }
-        .bg-strateq-green { background-color: #8dc63f; }
-        
-        /* 1. THE FANCY SLIME TITLE - High Visibility */
-        .slime-title {
-            font-family: 'Creepster', system-ui;
-            font-size: 3.5rem;
-            color: #a3ff00; /* Bright Slime Green */
-            text-shadow: 
-                3px 3px 0px #000, 
-                0 0 20px rgba(163, 255, 0, 0.6);
-            filter: url('#goo');
-            line-height: 1.2;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Team Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .strateq-navy { background-color: #0b1120; }
+        .strateq-green { color: #8dc63f; }
+        .bg-strateq-green { background-color: #8dc63f; }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
 
-        /* 2. ORIGINAL CARD DESIGN (From your first image) */
-        .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
-            z-index: 10;
-            overflow: hidden;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-        .glass-card:hover { transform: translateY(-2px); border-color: rgba(141, 198, 63, 0.4); }
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: skewX(-25deg);
+            transition: 0.5s;
+        }
 
-        /* 3. ORIGINAL GRID & FIREWORKS */
-        .bg-grid-layer {
-            position: fixed;
-            inset: 0;
-            background-image: linear-gradient(to right, rgba(255,255,255,0.01) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255,255,255,0.01) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -1;
-            pointer-events: none;
-        }
+        .glass-card:hover::before { left: 150%; }
+        .glass-card:hover { transform: translateY(-2px); border-color: rgba(141, 198, 63, 0.4); }
 
-        #fw-canvas {
-            position: fixed;
-            inset: 0;
-            z-index: -2;
-            pointer-events: none;
-            opacity: 0.4;
-        }
+        #remarks-modal.hidden { display: none !important; }
+        .member-badge { font-size: 14px !important; letter-spacing: 0.05em; }
+        .task-id-label { font-size: 11px !important; }
 
-        /* 4. FLOATING GHOST (Subtle addition) */
-        .ghost {
-            position: fixed;
-            width: 60px;
-            opacity: 0.1;
-            z-index: -1;
-            animation: float 12s infinite ease-in-out;
-            pointer-events: none;
-        }
-        @keyframes float {
-            0% { transform: translate(-10vw, 20vh); }
-            50% { transform: translate(110vw, 40vh); }
-            100% { transform: translate(-10vw, 60vh); }
-        }
+        /* Background Layers */
+        .bg-grid-layer {
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.01) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            pointer-events: none;
+        }
 
-        #remarks-modal.hidden { display: none !important; }
-        .member-badge { font-size: 14px !important; letter-spacing: 0.05em; }
-    </style>
+        /* 🎆 FIREWORKS CANVAS - MOVED BEHIND EVERYTHING 🎆 */
+        #fw-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .pulse-dot { animation: pulse-green 2s infinite; }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(141, 198, 63, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(141, 198, 63, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(141, 198, 63, 0); }
+        }
+    </style>
 </head>
 <body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
 
-    <canvas id="fw-canvas"></canvas>
-    <div class="bg-grid-layer"></div>
-    <div class="ghost"><svg viewBox="0 0 119 137" fill="white"><path d="M59.61,0C26.69,0,0,26.69,0,59.61v77.81l14.9-14.9,14.9,14.9,14.9-14.9,14.9,14.9,14.9-14.9,14.9,14.9,14.9-14.9,14.9,14.9V59.61C119.22,26.69,92.53,0,59.61,0ZM37.26,63.34c-4.11,0-7.45-3.34-7.45-7.45s3.34-7.45,7.45-7.45,7.45,3.34,7.45,7.45-3.34,7.45-7.45,7.45Zm44.71,0c-4.11,0-7.45-3.34-7.45-7.45s3.34-7.45,7.45-7.45,7.45,3.34,7.45,7.45-3.34,7.45-7.45,7.45Z"/></svg></div>
+    <canvas id="fw-canvas"></canvas>
+    <div class="bg-grid-layer"></div>
 
-    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
-        <div>
-            <h1 class="slime-title uppercase tracking-tighter">
-                Technical Team Dashboard
-            </h1>
-            <div class="flex items-center gap-2 mt-2">
-                <div class="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
-            </div>
-        </div>
-        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md">
-            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
-        </div>
-    </div>
+    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
+                Technical Team <span class="strateq-green">Dashboard</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-2">
+                <div id="status-dot" class="h-2.5 w-2.5 rounded-full bg-green-500 pulse-dot"></div>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
+            </div>
+        </div>
+        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md">
+            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
+        </div>
+    </div>
 
-    <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10">
-        <div>
-            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-6 uppercase text-xs font-black">
-                <span class="text-blue-400 tracking
+    <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div>
+            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-6 uppercase text-xs font-black">
+                <span class="text-blue-400 tracking-widest">In Progress</span>
+                <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full shadow-lg shadow-blue-900/50">0</span>
+            </h2>
+            <div id="col-progress" class="space-y-4"></div>
+        </div>
+        
+        <div>
+            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500 mb-6 uppercase text-xs font-black">
+                <span class="text-orange-400 tracking-widest">On Hold</span>
+                <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full shadow-lg shadow-orange-900/50">0</span>
+            </h2>
+            <div id="col-hold" class="space-y-4"></div>
+        </div>
+
+        <div>
+            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green mb-6 uppercase text-xs font-black">
+                <span class="strateq-green tracking-widest">Completed</span>
+                <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full shadow-lg shadow-green-900/50">0</span>
+            </h2>
+            <div id="col-completed" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Comments</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2"></p>
+        </div>
+    </div>
+
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
+
+        const memberStyles = {
+            "mahind": "bg-indigo-500/20 text-indigo-300 border-indigo-500/50",
+            "boon": "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/50",
+            "safwan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/50",
+            "wai ming": "bg-purple-500/20 text-purple-300 border-purple-500/50",
+            "shoma": "bg-rose-500/20 text-rose-300 border-rose-500/50",
+            "azizan": "bg-amber-500/20 text-amber-300 border-amber-500/50",
+            "default": "bg-slate-800 text-slate-400 border-slate-700"
+        };
+
+        function openModal(text) {
+            if(!text || text.trim() === "") return;
+            document.getElementById('modal-content').innerText = text;
+            document.getElementById('remarks-modal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('remarks-modal').classList.add('hidden'); }
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
+                
+                const cols = {
+                    'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress' },
+                    'On Hold': { html: '', count: 0, div: 'col-hold', counter: 'count-hold' },
+                    'Completed': { html: '', count: 0, div: 'col-completed', counter: 'count-completed' }
+                };
+
+                rows.forEach(row => {
+                    if (row.length < 3) return;
+                    const id = row[0].replace(/"/g, '').trim();
+                    const title = row[1].replace(/"/g, '').trim();
+                    const status = row[2].replace(/"/g, '').trim();
+                    const rawName = (row[3] || "Unassigned").replace(/"/g, '').trim();
+                    const remarks = (row[4] || "").replace(/"/g, '').trim(); 
+
+                    const firstName = rawName.split('/')[0].trim().toLowerCase();
+                    const colorStyle = memberStyles[firstName] || memberStyles["default"];
+
+                    if (cols[status] && title) {
+                        cols[status].count++;
+                        const commentBtn = remarks ? `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[12px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
+
+                        cols[status].html += `
+                            <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700">
+                                <div class="flex flex-col gap-2 mb-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="task-id-label font-black text-slate-500 uppercase tracking-widest">TASK: ${id}</span>
+                                        <span class="member-badge font-bold px-4 py-1.5 rounded-full border shadow-md uppercase ${colorStyle}">${rawName}</span>
+                                    </div>
+                                </div>
+                                <h3 class="text-[16px] font-bold text-white leading-tight mb-2">${title}</h3>
+                                ${commentBtn}
+                            </div>
+                        `;
+                    }
+                });
+
+                Object.keys(cols).forEach(key => {
+                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
+                    document.getElementById(cols[key].counter).innerText = cols[key].count;
+                });
+                document.getElementById('sync-status').innerText = "LIVE • " + new Date().toLocaleTimeString();
+            } catch (e) { document.getElementById('sync-status').innerText = "RECONNECTING..."; }
+        }
+
+        setInterval(updateDashboard, 15000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+        updateDashboard();
+    </script>
+
+    <script>
+        const canvas = document.getElementById('fw-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.velX = (Math.random() - 0.5) * 6;
+                this.velY = (Math.random() - 0.5) * 6;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+            }
+            update() {
+                this.x += this.velX; this.y += this.velY;
+                this.velY += 0.05; // gravity
+                this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.6);
+            const colors = ['#8dc63f', '#3b82f6', '#f97316', '#ffffff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < 30; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.05) createFirework();
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
