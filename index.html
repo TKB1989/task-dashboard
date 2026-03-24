@@ -1,83 +1,139 @@
-<script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
-
-    // Unique color mapping for team members
-    const memberStyles = {
-        "mahind": "bg-indigo-500/20 text-indigo-300 border-indigo-500/50",
-        "boon": "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/50",
-        "safwan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/50",
-        "wai ming": "bg-purple-500/20 text-purple-300 border-purple-500/50",
-        "shoma": "bg-rose-500/20 text-rose-300 border-rose-500/50",
-        "default": "bg-slate-800 text-slate-400 border-slate-700"
-    };
-
-    function openModal(text) {
-        if(!text || text.trim() === "") return;
-        document.getElementById('modal-content').innerText = text;
-        document.getElementById('remarks-modal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-        document.getElementById('remarks-modal').classList.add('hidden');
-    }
-
-    async function updateDashboard() {
-        try {
-            const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
-            const data = await response.text();
-            const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
-            
-            const cols = {
-                'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress' },
-                'On Hold': { html: '', count: 0, div: 'col-hold', counter: 'count-hold' },
-                'Completed': { html: '', count: 0, div: 'col-completed', counter: 'count-completed' }
-            };
-
-            rows.forEach(row => {
-                if (row.length < 3) return;
-                const id = row[0].replace(/"/g, '').trim();
-                const title = row[1].replace(/"/g, '').trim();
-                const status = row[2].replace(/"/g, '').trim();
-                const rawName = (row[3] || "Unassigned").replace(/"/g, '').trim();
-                const remarks = (row[4] || "").replace(/"/g, '').trim(); 
-
-                // Determine member style
-                const styleKey = rawName.toLowerCase();
-                const colorStyle = memberStyles[styleKey] || memberStyles["default"];
-
-                if (cols[status] && title) {
-                    cols[status].count++;
-                    
-                    const commentBtn = remarks ? 
-                        `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[10px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
-
-                    cols[status].html += `
-                        <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter">TASK ID: ${id}</span>
-                                <span class="text-[10px] font-black px-3 py-1 rounded-full border shadow-sm uppercase tracking-tight ${colorStyle}">
-                                    ${rawName}
-                                </span>
-                            </div>
-                            <h3 class="text-[15px] font-bold text-white leading-snug mb-1">${title}</h3>
-                            ${commentBtn}
-                        </div>
-                    `;
-                }
-            });
-
-            Object.keys(cols).forEach(key => {
-                document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">No active tasks</p>';
-                document.getElementById(cols[key].counter).innerText = cols[key].count;
-            });
-
-            document.getElementById('sync-status').innerText = "LIVE • " + new Date().toLocaleTimeString();
-        } catch (e) {
-            document.getElementById('sync-status').innerText = "RECONNECTING...";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Team Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .strateq-navy { background-color: #0b1120; }
+        .strateq-green { color: #8dc63f; }
+        .bg-strateq-green { background-color: #8dc63f; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-    }
+        #remarks-modal.hidden { display: none !important; }
+    </style>
+</head>
+<body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
 
-    setInterval(updateDashboard, 15000);
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-    updateDashboard();
-</script>
+    <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">Task Comments</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2"></p>
+        </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
+                Technical Team <span class="strateq-green">Dashboard</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-2">
+                <div id="status-dot" class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#8dc63f]"></div>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
+            </div>
+        </div>
+        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl">
+            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div>
+            <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-6 uppercase text-xs font-black">
+                <span class="text-blue-400 tracking-widest">In Progress</span>
+                <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full">0</span>
+            </h2>
+            <div id="col-progress" class="space-y-4"></div>
+        </div>
+        <div>
+            <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500 mb-6 uppercase text-xs font-black">
+                <span class="text-orange-400 tracking-widest">On Hold</span>
+                <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full">0</span>
+            </h2>
+            <div id="col-hold" class="space-y-4"></div>
+        </div>
+        <div>
+            <h2 class="flex justify-between items-center bg-strateq-green/10 p-4 rounded-2xl border-l-4 border-strateq-green mb-6 uppercase text-xs font-black">
+                <span class="strateq-green tracking-widest">Completed</span>
+                <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full">0</span>
+            </h2>
+            <div id="col-completed" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
+
+        function openModal(text) {
+            if(!text || text.trim() === "") return;
+            document.getElementById('modal-content').innerText = text;
+            document.getElementById('remarks-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('remarks-modal').classList.add('hidden');
+        }
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
+                
+                const cols = {
+                    'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress' },
+                    'On Hold': { html: '', count: 0, div: 'col-hold', counter: 'count-hold' },
+                    'Completed': { html: '', count: 0, div: 'col-completed', counter: 'count-completed' }
+                };
+
+                rows.forEach(row => {
+                    if (row.length < 3) return;
+                    const id = row[0].replace(/"/g, '').trim();
+                    const title = row[1].replace(/"/g, '').trim();
+                    const status = row[2].replace(/"/g, '').trim();
+                    const name = (row[3] || "Unassigned").replace(/"/g, '').trim();
+                    const remarks = (row[4] || "").replace(/"/g, '').trim(); 
+
+                    if (cols[status] && title) {
+                        cols[status].count++;
+                        
+                        const commentBtn = remarks ? 
+                            `<button onclick="openModal(\`${remarks.replace(/`/g, "\\`")}\`)" class="mt-4 w-full text-[10px] bg-slate-800/80 hover:bg-slate-700 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider italic">💬 Comment</button>` : '';
+
+                        cols[status].html += `
+                            <div class="glass-card p-6 rounded-2xl shadow-xl border-l-2 border-slate-700 hover:border-[#8dc63f] transition-all duration-300">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase">ID: ${id}</span>
+                                    <span class="text-[10px] text-blue-300 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">${name}</span>
+                                </div>
+                                <h3 class="text-[14px] font-bold text-white leading-tight">${title}</h3>
+                                ${commentBtn}
+                            </div>
+                        `;
+                    }
+                });
+
+                Object.keys(cols).forEach(key => {
+                    document.getElementById(cols[key].div).innerHTML = cols[key].html || '<p class="text-slate-800 italic text-center text-xs py-10">---</p>';
+                    document.getElementById(cols[key].counter).innerText = cols[key].count;
+                });
+
+                document.getElementById('sync-status').innerText = "LIVE • " + new Date().toLocaleTimeString();
+            } catch (e) {
+                document.getElementById('sync-status').innerText = "RECONNECTING...";
+            }
+        }
+
+        setInterval(updateDashboard, 15000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+        updateDashboard();
+    </script>
+</body>
+</html>
