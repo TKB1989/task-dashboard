@@ -13,10 +13,11 @@
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 10;
         }
         #remarks-modal.hidden { display: none !important; }
         
-        /* Typography Scale */
         .member-badge {
             font-size: 14px !important;
             letter-spacing: 0.05em;
@@ -25,26 +26,44 @@
             font-size: 11px !important;
         }
 
-        /* Subtle Logo Watermark */
+        /* Fixed Watermark - Built-in Logo */
         body::before {
             content: "";
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 60%; /* Adjust size of the watermark here */
-            height: 60%;
-            background-image: url('https://www.strateqgroup.com/images/logo.png');
+            width: 800px; /* Large watermark */
+            height: 400px;
+            /* Using a reliable placeholder for the Strateq shape if external link fails */
+            background-image: url("https://www.strateqgroup.com/images/logo.png");
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
-            opacity: 0.03; /* Very subtle transparency */
-            z-index: -1; /* Sits behind everything */
+            opacity: 0.05; 
+            z-index: 0;
             pointer-events: none;
+        }
+
+        /* Backup layer in case the image above still blocks */
+        .watermark-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 15vw;
+            font-weight: 900;
+            color: white;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body class="strateq-navy text-slate-100 p-8 font-sans min-h-screen">
+
+    <div class="watermark-text">STRATEQ</div>
 
     <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
@@ -56,7 +75,7 @@
         </div>
     </div>
 
-    <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
+    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-8 gap-6">
         <div>
             <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
                 Technical Team <span class="strateq-green">Dashboard</span>
@@ -71,7 +90,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
             <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-6 uppercase text-xs font-black">
                 <span class="text-blue-400 tracking-widest">In Progress</span>
