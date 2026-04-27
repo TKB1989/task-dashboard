@@ -355,7 +355,7 @@
         <input id="search-input" class="search-input" type="text" placeholder="Search tasks…" oninput="applyFilters()">
     </div>
     <div class="flex flex-wrap gap-2" id="filter-btns">
-        <button class="filter-btn active" data-member="all" onclick="setFilter(this)">All</button>
+        <button class="filter-btn active" data-members="all" onclick="setFilter(this)">All</button>
     </div>
 </div>
 
@@ -498,29 +498,29 @@ function closePanel() {
 function setFilter(btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    activeFilter = btn.dataset.member;
+    activeFilter = btn.dataset.members;
     applyFilters();
 }
 
 function applyFilters() {
     const query = document.getElementById('search-input').value.toLowerCase();
     document.querySelectorAll('.glass-card').forEach(card => {
-        const name   = (card.dataset.member || '').toLowerCase();
-        const title  = (card.dataset.title  || '').toLowerCase();
-        const matchMember = activeFilter === 'all' || name.includes(activeFilter);
-        const matchSearch = !query || title.includes(query) || name.includes(query);
+        const members = (card.dataset.members || '').toLowerCase().split('|');
+        const title   = (card.dataset.title  || '').toLowerCase();
+        const matchMember = activeFilter === 'all' || members.some(m => m.includes(activeFilter));
+        const matchSearch = !query || title.includes(query) || members.some(m => m.includes(query));
         card.style.display = (matchMember && matchSearch) ? '' : 'none';
     });
 }
 
 function buildFilterButtons(members) {
     const container = document.getElementById('filter-btns');
-    const existing = [...container.querySelectorAll('.filter-btn')].map(b => b.dataset.member);
+    const existing = [...container.querySelectorAll('.filter-btn')].map(b => b.dataset.members);
     members.forEach(m => {
         if (existing.includes(m.toLowerCase())) return;
         const btn = document.createElement('button');
         btn.className = 'filter-btn';
-        btn.dataset.member = m.toLowerCase();
+        btn.dataset.members = m.toLowerCase();
         btn.innerText = m;
         btn.onclick = function() { setFilter(this); };
         container.appendChild(btn);
@@ -624,7 +624,7 @@ async function updateDashboard() {
                     const borderColor = key === 'In Progress' ? 'border-blue-500/30' : key === 'On Hold' ? 'border-orange-500/30' : 'border-[#8dc63f]/30';
 
                     return `<div class="glass-card ${colClass} ${pulseClass} p-5 rounded-2xl shadow-xl border-l-4 ${borderColor} cursor-pointer"
-                                 data-member="${task.firstName}" data-title="${task.title.toLowerCase()}"
+                                 data-members="${task.rawName.split(`/`).map(n=>n.trim().toLowerCase()).join(`|`)}" data-title="${task.title.toLowerCase()}"
                                  style="transition-delay:${idx * 60}ms"
                                  onclick='openPanel(${JSON.stringify(task)})'>
                         <div class="flex justify-between items-center mb-3">
