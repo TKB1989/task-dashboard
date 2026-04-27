@@ -578,12 +578,48 @@ function tickCountdown() {
     countdownText.innerText = countdown;
 }
 
+
+// === PROPER CSV PARSER (handles multiline quoted cells) ===
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    let i = 0;
+    while (i < text.length) {
+        const ch = text[i];
+        if (inQuotes) {
+            if (ch === '"' && text[i+1] === '"') {
+                field += '"'; i += 2;
+            } else if (ch === '"') {
+                inQuotes = false; i++;
+            } else {
+                field += ch; i++;
+            }
+        } else {
+            if (ch === '"') {
+                inQuotes = true; i++;
+            } else if (ch === ',') {
+                row.push(field.trim()); field = ''; i++;
+            } else if (ch === '\r' && text[i+1] === '\n') {
+                row.push(field.trim()); rows.push(row); row = []; field = ''; i += 2;
+            } else if (ch === '\n') {
+                row.push(field.trim()); rows.push(row); row = []; field = ''; i++;
+            } else {
+                field += ch; i++;
+            }
+        }
+    }
+    if (field || row.length) { row.push(field.trim()); rows.push(row); }
+    return rows;
+}
+
 // === MAIN UPDATE ===
 async function updateDashboard() {
     try {
         const res  = await fetch(`${CSV_URL}&t=${Date.now()}`);
         const data = await res.text();
-        const rows = data.split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
+        const rows = parseCSV(data).slice(1);
 
         const cols = {
             'In Progress': { tasks:[], div:'col-progress', counter:'count-progress', bar:'bar-progress', statEl:'stat-progress' },
@@ -600,7 +636,7 @@ async function updateDashboard() {
             const title    = row[1].replace(/"/g,'').trim();
             const status   = row[2].replace(/"/g,'').trim();
             const rawName  = (row[3]||"Unassigned").replace(/"/g,'').trim();
-            const remarks  = (row[4]||"").replace(/"/g,'').trim();
+            const remarks  = (row[4]||"").replace(/"/g,'').replace(/\r\n/g,'\n').trim();
             const firstName = rawName.split('/')[0].trim().toLowerCase();
             if (!cols[status] || !title) return;
             const task = { id, title, status, rawName, firstName, remarks };
