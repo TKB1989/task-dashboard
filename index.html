@@ -10,19 +10,26 @@
         .strateq-green { color: #8dc63f; }
         .bg-strateq-green { background-color: #8dc63f; }
 
+        /* === GLASS CARD === */
         .glass-card {
             background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.05);
             position: relative;
             z-index: 10;
             overflow: hidden;
-            transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), border-color 0.2s, box-shadow 0.2s;
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        .glass-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(.34,1.56,.64,1), border-color 0.2s, box-shadow 0.2s;
         }
         .glass-card::before {
             content: "";
-            position: absolute;
-            top: 0; left: -100%;
+            position: absolute; top: 0; left: -100%;
             width: 50%; height: 100%;
             background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
             transform: skewX(-25deg);
@@ -31,14 +38,22 @@
         .glass-card:hover::before { left: 150%; }
         .glass-card:hover {
             transform: translateY(-4px) scale(1.01);
-            border-color: rgba(141,198,63,0.45);
-            box-shadow: 0 12px 40px rgba(141,198,63,0.1);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.3);
+        }
+        .glass-card.progress-card:hover { border-color: rgba(59,130,246,0.5); box-shadow: 0 14px 40px rgba(59,130,246,0.12); }
+        .glass-card.hold-card:hover    { border-color: rgba(249,115,22,0.5); box-shadow: 0 14px 40px rgba(249,115,22,0.12); }
+        .glass-card.done-card:hover    { border-color: rgba(141,198,63,0.5); box-shadow: 0 14px 40px rgba(141,198,63,0.12); }
+
+        /* === PULSE on In Progress cards === */
+        .progress-pulse {
+            animation: progressPulse 3s ease-in-out infinite;
+        }
+        @keyframes progressPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.0); }
+            50%       { box-shadow: 0 0 12px 2px rgba(59,130,246,0.15); }
         }
 
-        #remarks-modal.hidden { display: none !important; }
-        .member-badge { font-size: 13px !important; letter-spacing: 0.05em; }
-        .task-id-label { font-size: 10px !important; }
-
+        /* === BACKGROUND === */
         .bg-grid-layer {
             position: fixed; inset: 0;
             background-image:
@@ -47,13 +62,20 @@
             background-size: 40px 40px;
             z-index: -1; pointer-events: none;
         }
-
+        .header-glow {
+            position: absolute; top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 600px; height: 200px;
+            background: radial-gradient(ellipse, rgba(141,198,63,0.06) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
         #fw-canvas {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: -2; pointer-events: none; opacity: 0.45;
         }
 
+        /* === PULSE DOT === */
         .pulse-dot { animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
             0%   { box-shadow: 0 0 0 0   rgba(141,198,63,0.5); }
@@ -61,7 +83,7 @@
             100% { box-shadow: 0 0 0 0   rgba(141,198,63,0); }
         }
 
-        /* Stats bar */
+        /* === STATS === */
         .stat-card {
             background: rgba(30,41,59,0.5);
             border: 1px solid rgba(255,255,255,0.06);
@@ -70,28 +92,15 @@
             text-align: center;
             transition: border-color 0.2s, transform 0.2s;
         }
-        .stat-card:hover { border-color: rgba(141,198,63,0.3); transform: translateY(-2px); }
+        .stat-card:hover { transform: translateY(-2px); }
 
-        /* Column thin progress bar */
+        /* === PROGRESS BARS === */
         .col-bar-track {
             height: 3px; border-radius: 99px;
             background: rgba(255,255,255,0.06);
-            margin: -14px 0 18px 0; overflow: hidden;
+            margin: -14px 0 18px; overflow: hidden;
         }
-        .col-bar-fill { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
-
-        /* Scrollable columns */
-        .col-scroll {
-            max-height: calc(100vh - 380px);
-            overflow-y: auto;
-            padding-right: 4px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(141,198,63,0.25) transparent;
-        }
-        .col-scroll::-webkit-scrollbar { width: 3px; }
-        .col-scroll::-webkit-scrollbar-thumb { background: rgba(141,198,63,0.25); border-radius: 99px; }
-
-        /* Overall progress */
+        .col-bar-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
         .overall-track {
             height: 5px; border-radius: 99px;
             background: rgba(255,255,255,0.06); overflow: hidden;
@@ -100,7 +109,7 @@
             height: 100%; border-radius: 99px;
             background: linear-gradient(90deg, #5b9e1a, #8dc63f, #b5e655);
             background-size: 200% 100%;
-            transition: width 0.8s ease;
+            transition: width 0.9s ease;
             animation: shimmer 2.5s linear infinite;
         }
         @keyframes shimmer {
@@ -108,30 +117,151 @@
             100% { background-position: -200% 0; }
         }
 
-        /* Countdown ring */
+        /* === COUNTDOWN === */
         #countdown-circle { transition: stroke-dashoffset 1s linear; }
 
-        /* Empty state */
-        .empty-state {
-            display: flex; flex-direction: column; align-items: center;
-            padding: 36px 16px; gap: 8px; opacity: 0.3;
+        /* === MEMBER BADGE === */
+        .member-badge { font-size: 13px !important; letter-spacing: 0.05em; }
+        .task-id-label { font-size: 10px !important; }
+
+        /* === AVATAR CIRCLE === */
+        .avatar-circle {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; letter-spacing: 0.05em;
+            flex-shrink: 0;
         }
 
-        /* Modal */
-        #remarks-modal > div {
-            animation: modalPop 0.18s cubic-bezier(.34,1.56,.64,1);
+        /* === FILTER BUTTONS === */
+        .filter-btn {
+            font-size: 11px; font-weight: 700;
+            padding: 5px 14px; border-radius: 99px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(30,41,59,0.5);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 0.05em;
         }
+        .filter-btn:hover { border-color: rgba(141,198,63,0.4); color: #8dc63f; }
+        .filter-btn.active {
+            background: rgba(141,198,63,0.15);
+            border-color: rgba(141,198,63,0.5);
+            color: #8dc63f;
+        }
+
+        /* === SEARCH === */
+        .search-input {
+            background: rgba(30,41,59,0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 13px;
+            padding: 8px 14px 8px 36px;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 200px;
+        }
+        .search-input:focus { border-color: rgba(141,198,63,0.4); }
+        .search-input::placeholder { color: #475569; }
+
+        /* === DETAIL PANEL === */
+        #detail-panel {
+            position: fixed; top: 0; right: -420px;
+            width: 400px; height: 100vh;
+            background: rgba(15,23,42,0.97);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255,255,255,0.07);
+            z-index: 200;
+            transition: right 0.35s cubic-bezier(.34,1.56,.64,1);
+            padding: 0;
+            overflow-y: auto;
+        }
+        #detail-panel.open { right: 0; }
+        #panel-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 199;
+            backdrop-filter: blur(2px);
+        }
+        #panel-overlay.open { display: block; }
+
+        /* === TOAST === */
+        #toast {
+            position: fixed; bottom: 28px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(30,41,59,0.95);
+            border: 1px solid rgba(141,198,63,0.3);
+            border-radius: 99px;
+            padding: 10px 24px;
+            font-size: 12px; font-weight: 700;
+            color: #8dc63f;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            z-index: 300;
+            transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+            opacity: 0; pointer-events: none;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* === OFFLINE BANNER === */
+        #offline-banner {
+            display: none;
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 12px; color: #f87171;
+            font-weight: 700; letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* === MODAL === */
+        #remarks-modal.hidden { display: none !important; }
+        #remarks-modal > div { animation: modalPop 0.18s cubic-bezier(.34,1.56,.64,1); }
         @keyframes modalPop {
             from { transform: scale(0.92); opacity: 0; }
             to   { transform: scale(1);    opacity: 1; }
         }
 
-        /* Card entrance */
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
+        /* === EMPTY STATE === */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 40px 16px; gap: 8px; opacity: 0.3;
         }
-        .card-animate { animation: cardIn 0.3s ease forwards; }
+
+        /* === THEME TOGGLE === */
+        .theme-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(30,41,59,0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; font-size: 16px;
+        }
+        .theme-btn:hover { border-color: rgba(141,198,63,0.4); transform: scale(1.1); }
+
+        /* === LIGHT MODE === */
+        body.light-mode { background-color: #f1f5f9 !important; color: #1e293b; }
+        body.light-mode .strateq-navy { background-color: #f1f5f9; }
+        body.light-mode .glass-card { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); }
+        body.light-mode .stat-card { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.08); }
+        body.light-mode .search-input { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.1); color: #1e293b; }
+        body.light-mode .filter-btn { background: rgba(255,255,255,0.7); color: #64748b; border-color: rgba(0,0,0,0.1); }
+        body.light-mode #detail-panel { background: rgba(248,250,252,0.98); border-left-color: rgba(0,0,0,0.08); }
+        body.light-mode .bg-grid-layer {
+            background-image:
+                linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
+        }
+        body.light-mode h3.text-white { color: #1e293b !important; }
+        body.light-mode .text-slate-400 { color: #64748b !important; }
+        body.light-mode .text-slate-500 { color: #94a3b8 !important; }
+        body.light-mode .text-slate-200 { color: #334155 !important; }
+        body.light-mode #toast { background: rgba(255,255,255,0.95); }
     </style>
 </head>
 <body class="strateq-navy text-slate-100 p-6 md:p-8 font-sans min-h-screen">
@@ -139,37 +269,48 @@
 <canvas id="fw-canvas"></canvas>
 <div class="bg-grid-layer"></div>
 
+<!-- OFFLINE BANNER -->
+<div id="offline-banner" class="relative z-10">⚠ Connection lost — showing last known data</div>
+
+<!-- TOAST -->
+<div id="toast">✓ Dashboard Refreshed</div>
+
 <!-- HEADER -->
-<div class="relative z-10 flex flex-col md:flex-row justify-between items-center mb-6 border-b border-slate-800 pb-6 gap-4">
-    <div>
-        <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
-            Technical Team <span class="strateq-green">Dashboard</span>
-        </h1>
-        <div class="flex items-center gap-2 mt-2">
-            <div class="h-2.5 w-2.5 rounded-full bg-green-500 pulse-dot"></div>
-            <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
-        </div>
-    </div>
-
-    <div class="flex items-center gap-5">
-        <!-- Countdown ring -->
-        <div class="flex flex-col items-center gap-1">
-            <div class="relative w-12 h-12">
-                <svg viewBox="0 0 40 40" class="w-12 h-12">
-                    <circle cx="20" cy="20" r="17" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
-                    <circle id="countdown-circle" cx="20" cy="20" r="17" fill="none"
-                        stroke="#8dc63f" stroke-width="3"
-                        stroke-dasharray="106.8" stroke-dashoffset="0"
-                        transform="rotate(-90 20 20)"/>
-                </svg>
-                <span id="countdown-text" class="absolute inset-0 flex items-center justify-center text-[11px] font-mono font-bold text-slate-300">15</span>
+<div class="relative z-10">
+    <div class="header-glow"></div>
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b border-slate-800 pb-6 gap-4">
+        <div class="relative z-10">
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase">
+                Technical Team <span class="strateq-green">Dashboard</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-2">
+                <div class="h-2.5 w-2.5 rounded-full bg-green-500 pulse-dot"></div>
+                <p id="sync-status" class="strateq-green font-mono text-[10px] tracking-widest uppercase font-bold italic">System Active</p>
             </div>
-            <span class="text-[9px] text-slate-600 uppercase tracking-widest">sync</span>
         </div>
+        <div class="flex items-center gap-4 relative z-10">
+            <!-- Theme toggle -->
+            <div class="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">🌙</div>
 
-        <!-- Clock -->
-        <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md">
-            <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
+            <!-- Countdown ring -->
+            <div class="flex flex-col items-center gap-1">
+                <div class="relative w-12 h-12">
+                    <svg viewBox="0 0 40 40" class="w-12 h-12">
+                        <circle cx="20" cy="20" r="17" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
+                        <circle id="countdown-circle" cx="20" cy="20" r="17" fill="none"
+                            stroke="#8dc63f" stroke-width="3"
+                            stroke-dasharray="106.8" stroke-dashoffset="0"
+                            transform="rotate(-90 20 20)"/>
+                    </svg>
+                    <span id="countdown-text" class="absolute inset-0 flex items-center justify-center text-[11px] font-mono font-bold text-slate-300">15</span>
+                </div>
+                <span class="text-[9px] text-slate-600 uppercase tracking-widest">sync</span>
+            </div>
+
+            <!-- Clock -->
+            <div class="bg-slate-900/80 px-10 py-4 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md">
+                <p id="clock" class="text-4xl font-mono font-bold text-white tabular-nums leading-none">00:00:00</p>
+            </div>
         </div>
     </div>
 </div>
@@ -195,7 +336,7 @@
 </div>
 
 <!-- OVERALL PROGRESS -->
-<div class="relative z-10 mb-8">
+<div class="relative z-10 mb-6">
     <div class="flex justify-between text-[10px] text-slate-600 uppercase tracking-widest mb-2">
         <span>Overall Completion</span>
         <span id="overall-pct" class="strateq-green font-bold">0%</span>
@@ -205,46 +346,67 @@
     </div>
 </div>
 
+<!-- SEARCH + FILTERS -->
+<div class="relative z-10 flex flex-wrap items-center gap-3 mb-8">
+    <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+        </svg>
+        <input id="search-input" class="search-input" type="text" placeholder="Search tasks…" oninput="applyFilters()">
+    </div>
+    <div class="flex flex-wrap gap-2" id="filter-btns">
+        <button class="filter-btn active" data-member="all" onclick="setFilter(this)">All</button>
+    </div>
+</div>
+
 <!-- COLUMNS -->
 <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-
-    <!-- In Progress -->
     <div>
         <h2 class="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border-l-4 border-blue-500 mb-2 uppercase text-xs font-black">
             <span class="text-blue-400 tracking-widest">In Progress</span>
             <span id="count-progress" class="bg-blue-600 text-white px-3 py-0.5 rounded-full shadow-lg shadow-blue-900/50">0</span>
         </h2>
         <div class="col-bar-track"><div id="bar-progress" class="col-bar-fill bg-blue-500" style="width:0%"></div></div>
-        <div id="col-progress" class="col-scroll space-y-3"></div>
+        <div id="col-progress" class="space-y-3"></div>
     </div>
-
-    <!-- On Hold -->
     <div>
         <h2 class="flex justify-between items-center bg-orange-500/10 p-4 rounded-2xl border-l-4 border-orange-500 mb-2 uppercase text-xs font-black">
             <span class="text-orange-400 tracking-widest">On Hold</span>
             <span id="count-hold" class="bg-orange-600 text-white px-3 py-0.5 rounded-full shadow-lg shadow-orange-900/50">0</span>
         </h2>
         <div class="col-bar-track"><div id="bar-hold" class="col-bar-fill bg-orange-500" style="width:0%"></div></div>
-        <div id="col-hold" class="col-scroll space-y-3"></div>
+        <div id="col-hold" class="space-y-3"></div>
     </div>
-
-    <!-- Completed -->
     <div>
         <h2 class="flex justify-between items-center bg-[#8dc63f]/10 p-4 rounded-2xl border-l-4 border-[#8dc63f] mb-2 uppercase text-xs font-black">
             <span class="strateq-green tracking-widest">Completed</span>
             <span id="count-completed" class="bg-strateq-green text-white px-3 py-0.5 rounded-full shadow-lg shadow-green-900/50">0</span>
         </h2>
-        <div class="col-bar-track"><div id="bar-completed" class="col-bar-fill bg-strateq-green" style="width:0%"></div></div>
-        <div id="col-completed" class="col-scroll space-y-3"></div>
+        <div class="col-bar-track"><div id="bar-completed" class="col-bar-fill bg-[#8dc63f]" style="width:0%"></div></div>
+        <div id="col-completed" class="space-y-3"></div>
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- DETAIL PANEL OVERLAY -->
+<div id="panel-overlay" onclick="closePanel()"></div>
+
+<!-- DETAIL PANEL -->
+<div id="detail-panel">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+            <h2 class="text-[#8dc63f] font-black uppercase tracking-widest text-sm">Task Details</h2>
+            <button onclick="closePanel()" class="text-slate-400 hover:text-white text-2xl leading-none transition-colors">&times;</button>
+        </div>
+        <div id="panel-content"></div>
+    </div>
+</div>
+
+<!-- COMMENT MODAL (kept for fallback) -->
 <div id="remarks-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl">
         <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
             <h2 class="text-[#8dc63f] font-bold uppercase tracking-widest text-sm">💬 Task Comments</h2>
-            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none transition-colors">&times;</button>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
         </div>
         <p id="modal-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap py-2"></p>
     </div>
@@ -254,32 +416,140 @@
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
 
 const memberStyles = {
-    "mahind":   "bg-indigo-500/20 text-indigo-300 border-indigo-500/50",
-    "boon":     "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/50",
-    "safwan":   "bg-cyan-500/20 text-cyan-300 border-cyan-500/50",
-    "wai ming": "bg-purple-500/20 text-purple-300 border-purple-500/50",
-    "shoma":    "bg-rose-500/20 text-rose-300 border-rose-500/50",
-    "azizan":   "bg-amber-500/20 text-amber-300 border-amber-500/50",
-    "default":  "bg-slate-800 text-slate-400 border-slate-700"
+    "mahind":   { badge: "bg-indigo-500/20 text-indigo-300 border-indigo-500/50", avatar: "background:#312e81;color:#a5b4fc" },
+    "boon":     { badge: "bg-[#8dc63f]/20 text-[#8dc63f] border-[#8dc63f]/50",   avatar: "background:#1a2e05;color:#8dc63f" },
+    "safwan":   { badge: "bg-cyan-500/20 text-cyan-300 border-cyan-500/50",       avatar: "background:#164e63;color:#67e8f9" },
+    "wai ming": { badge: "bg-purple-500/20 text-purple-300 border-purple-500/50", avatar: "background:#2e1065;color:#d8b4fe" },
+    "shoma":    { badge: "bg-rose-500/20 text-rose-300 border-rose-500/50",       avatar: "background:#4c0519;color:#fda4af" },
+    "azizan":   { badge: "bg-amber-500/20 text-amber-300 border-amber-500/50",    avatar: "background:#451a03;color:#fcd34d" },
+    "default":  { badge: "bg-slate-800 text-slate-400 border-slate-700",          avatar: "background:#1e293b;color:#94a3b8" }
 };
 
-// Modal
+let allTasks = [];
+let activeFilter = 'all';
+let lightMode = false;
+
+// === THEME ===
+function toggleTheme() {
+    lightMode = !lightMode;
+    document.body.classList.toggle('light-mode', lightMode);
+    document.querySelector('.theme-btn').innerText = lightMode ? '🌙' : '☀️';
+}
+
+// === MODAL ===
 function openModal(text) {
     if (!text || !text.trim()) return;
     document.getElementById('modal-content').innerText = text;
     document.getElementById('remarks-modal').classList.remove('hidden');
 }
 function closeModal() { document.getElementById('remarks-modal').classList.add('hidden'); }
+document.getElementById('remarks-modal').addEventListener('click', e => { if (e.target === document.getElementById('remarks-modal')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closePanel(); } });
 
-// Close on backdrop click
-document.getElementById('remarks-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-});
+// === DETAIL PANEL ===
+function openPanel(task) {
+    const statusColors = {
+        'In Progress': { bg: 'bg-blue-500/20',   text: 'text-blue-300',   border: 'border-blue-500/40' },
+        'On Hold':     { bg: 'bg-orange-500/20',  text: 'text-orange-300', border: 'border-orange-500/40' },
+        'Completed':   { bg: 'bg-[#8dc63f]/20',   text: 'text-[#8dc63f]', border: 'border-[#8dc63f]/40' }
+    };
+    const sc = statusColors[task.status] || statusColors['In Progress'];
+    const style = memberStyles[task.firstName] || memberStyles['default'];
+    const initials = task.rawName.split('/').map(n => n.trim()[0]).join('').toUpperCase().slice(0,2);
 
-// Close on Esc
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('panel-content').innerHTML = `
+        <div class="flex items-center gap-3 mb-6">
+            <div class="avatar-circle text-base w-12 h-12" style="${style.avatar}">${initials}</div>
+            <div>
+                <p class="font-bold text-white text-sm">${task.rawName}</p>
+                <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${sc.bg} ${sc.text} ${sc.border}">${task.status}</span>
+            </div>
+        </div>
+        <div class="mb-5">
+            <p class="text-[10px] text-slate-600 uppercase tracking-widest mb-1">Task ID</p>
+            <p class="font-black text-slate-400 text-sm">${task.id}</p>
+        </div>
+        <div class="mb-5">
+            <p class="text-[10px] text-slate-600 uppercase tracking-widest mb-2">Task Title</p>
+            <p class="font-bold text-white text-lg leading-snug ${task.status === 'Completed' ? 'line-through text-slate-500' : ''}">${task.title}</p>
+        </div>
+        <div class="mb-5">
+            <p class="text-[10px] text-slate-600 uppercase tracking-widest mb-2">Assigned To</p>
+            <span class="text-sm font-bold px-4 py-1.5 rounded-full border ${style.badge}">${task.rawName}</span>
+        </div>
+        ${task.remarks ? `
+        <div class="mt-6 p-4 rounded-xl bg-slate-800/60 border border-slate-700">
+            <p class="text-[10px] text-[#8dc63f] uppercase tracking-widest mb-2 font-bold">💬 Comments</p>
+            <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">${task.remarks}</p>
+        </div>` : `
+        <div class="mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-800 text-center">
+            <p class="text-slate-600 text-xs uppercase tracking-widest">No comments</p>
+        </div>`}
+    `;
+    document.getElementById('detail-panel').classList.add('open');
+    document.getElementById('panel-overlay').classList.add('open');
+}
+function closePanel() {
+    document.getElementById('detail-panel').classList.remove('open');
+    document.getElementById('panel-overlay').classList.remove('open');
+}
 
-// Empty state SVG
+// === FILTERS ===
+function setFilter(btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.member;
+    applyFilters();
+}
+
+function applyFilters() {
+    const query = document.getElementById('search-input').value.toLowerCase();
+    document.querySelectorAll('.glass-card').forEach(card => {
+        const name   = (card.dataset.member || '').toLowerCase();
+        const title  = (card.dataset.title  || '').toLowerCase();
+        const matchMember = activeFilter === 'all' || name.includes(activeFilter);
+        const matchSearch = !query || title.includes(query) || name.includes(query);
+        card.style.display = (matchMember && matchSearch) ? '' : 'none';
+    });
+}
+
+function buildFilterButtons(members) {
+    const container = document.getElementById('filter-btns');
+    const existing = [...container.querySelectorAll('.filter-btn')].map(b => b.dataset.member);
+    members.forEach(m => {
+        if (existing.includes(m.toLowerCase())) return;
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.member = m.toLowerCase();
+        btn.innerText = m;
+        btn.onclick = function() { setFilter(this); };
+        container.appendChild(btn);
+    });
+}
+
+// === TOAST ===
+function showToast() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// === COUNTER ANIMATION ===
+function animateCount(el, target) {
+    const start = parseInt(el.innerText) || 0;
+    if (start === target) return;
+    const duration = 600;
+    const startTime = performance.now();
+    function step(now) {
+        const p = Math.min((now - startTime) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.innerText = Math.round(start + (target - start) * ease) + (el.id === 'stat-rate' ? '%' : '');
+        if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+// === EMPTY STATE ===
 function emptyState(label) {
     return `<div class="empty-state">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -291,98 +561,128 @@ function emptyState(label) {
     </div>`;
 }
 
-// Countdown
+// === COUNTDOWN ===
 let countdown = 15;
 const totalDash = 106.8;
 const circle = document.getElementById('countdown-circle');
 const countdownText = document.getElementById('countdown-text');
-
 function tickCountdown() {
     countdown--;
     if (countdown < 0) countdown = 14;
-    const offset = totalDash * (1 - countdown / 15);
-    circle.style.strokeDashoffset = offset;
+    circle.style.strokeDashoffset = totalDash * (1 - countdown / 15);
     countdownText.innerText = countdown;
 }
 
-// Dashboard update
+// === MAIN UPDATE ===
 async function updateDashboard() {
     try {
-        const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
-        const data = await response.text();
+        const res  = await fetch(`${CSV_URL}&t=${Date.now()}`);
+        const data = await res.text();
         const rows = data.split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)).slice(1);
 
         const cols = {
-            'In Progress': { html: '', count: 0, div: 'col-progress', counter: 'count-progress', bar: 'bar-progress' },
-            'On Hold':     { html: '', count: 0, div: 'col-hold',     counter: 'count-hold',     bar: 'bar-hold' },
-            'Completed':   { html: '', count: 0, div: 'col-completed',counter: 'count-completed',bar: 'bar-completed' }
+            'In Progress': { tasks:[], div:'col-progress', counter:'count-progress', bar:'bar-progress', statEl:'stat-progress' },
+            'On Hold':     { tasks:[], div:'col-hold',     counter:'count-hold',     bar:'bar-hold',     statEl:'stat-hold' },
+            'Completed':   { tasks:[], div:'col-completed',counter:'count-completed',bar:'bar-completed',statEl:null }
         };
 
-        rows.forEach((row, idx) => {
+        const members = new Set();
+        allTasks = [];
+
+        rows.forEach(row => {
             if (row.length < 3) return;
-            const id      = row[0].replace(/"/g,'').trim();
-            const title   = row[1].replace(/"/g,'').trim();
-            const status  = row[2].replace(/"/g,'').trim();
-            const rawName = (row[3] || "Unassigned").replace(/"/g,'').trim();
-            const remarks = (row[4] || "").replace(/"/g,'').trim();
-
-            const firstName  = rawName.split('/')[0].trim().toLowerCase();
-            const colorStyle = memberStyles[firstName] || memberStyles["default"];
-
-            if (cols[status] && title) {
-                cols[status].count++;
-                const delay = cols[status].count * 60;
-                const commentBtn = remarks
-                    ? `<button onclick="openModal(\`${remarks.replace(/`/g,"\\`")}\`)"
-                        class="mt-3 w-full text-[11px] bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-[#8dc63f] py-2 rounded-lg border border-slate-700 transition-all font-bold uppercase tracking-wider">
-                        💬 View Comment
-                      </button>` : '';
-
-                const completedStyle = status === 'Completed'
-                    ? 'border-l-2 border-[#8dc63f]/40' : 'border-l-2 border-slate-700';
-
-                cols[status].html += `
-                    <div class="glass-card p-5 rounded-2xl shadow-xl ${completedStyle} card-animate"
-                         style="animation-delay:${delay}ms; animation-fill-mode:both;">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="task-id-label font-black text-slate-600 uppercase tracking-widest">TASK · ${id}</span>
-                            <span class="member-badge font-bold px-3 py-1 rounded-full border shadow-md uppercase ${colorStyle}">${rawName}</span>
-                        </div>
-                        <h3 class="text-[15px] font-bold text-white leading-snug ${status === 'Completed' ? 'line-through text-slate-400' : ''}">${title}</h3>
-                        ${commentBtn}
-                    </div>`;
-            }
+            const id       = row[0].replace(/"/g,'').trim();
+            const title    = row[1].replace(/"/g,'').trim();
+            const status   = row[2].replace(/"/g,'').trim();
+            const rawName  = (row[3]||"Unassigned").replace(/"/g,'').trim();
+            const remarks  = (row[4]||"").replace(/"/g,'').trim();
+            const firstName = rawName.split('/')[0].trim().toLowerCase();
+            if (!cols[status] || !title) return;
+            const task = { id, title, status, rawName, firstName, remarks };
+            cols[status].tasks.push(task);
+            allTasks.push(task);
+            rawName.split('/').forEach(n => members.add(n.trim()));
         });
 
-        const total     = cols['In Progress'].count + cols['On Hold'].count + cols['Completed'].count;
-        const doneCount = cols['Completed'].count;
+        buildFilterButtons([...members]);
+
+        const total     = allTasks.length;
+        const doneCount = cols['Completed'].tasks.length;
         const pct       = total > 0 ? Math.round(doneCount / total * 100) : 0;
 
-        // Update columns
         Object.keys(cols).forEach(key => {
             const c = cols[key];
-            document.getElementById(c.div).innerHTML = c.html || emptyState(key);
-            document.getElementById(c.counter).innerText = c.count;
-            const barPct = total > 0 ? Math.round(c.count / total * 100) : 0;
+            if (c.tasks.length === 0) {
+                document.getElementById(c.div).innerHTML = emptyState(key);
+            } else {
+                document.getElementById(c.div).innerHTML = c.tasks.map((task, idx) => {
+                    const style    = memberStyles[task.firstName] || memberStyles['default'];
+                    const initials = task.rawName.split('/').map(n=>n.trim()[0]).join('').toUpperCase().slice(0,2);
+                    const isDone   = key === 'Completed';
+                    const pulseClass = key === 'In Progress' ? 'progress-pulse' : '';
+                    const colClass   = key === 'In Progress' ? 'progress-card' : key === 'On Hold' ? 'hold-card' : 'done-card';
+                    const borderColor = key === 'In Progress' ? 'border-blue-500/30' : key === 'On Hold' ? 'border-orange-500/30' : 'border-[#8dc63f]/30';
+
+                    return `<div class="glass-card ${colClass} ${pulseClass} p-5 rounded-2xl shadow-xl border-l-4 ${borderColor} cursor-pointer"
+                                 data-member="${task.firstName}" data-title="${task.title.toLowerCase()}"
+                                 style="transition-delay:${idx * 60}ms"
+                                 onclick='openPanel(${JSON.stringify(task)})'>
+                        <div class="flex justify-between items-center mb-3">
+                            <span style="font-size:10px" class="font-black text-slate-600 uppercase tracking-widest">TASK · ${task.id}</span>
+                            <div class="flex items-center gap-2">
+                                <div class="avatar-circle" style="${style.avatar}">${initials}</div>
+                                <span class="member-badge font-bold px-3 py-1 rounded-full border ${style.badge}">${task.rawName}</span>
+                            </div>
+                        </div>
+                        <h3 class="text-[15px] font-bold text-white leading-snug ${isDone ? 'line-through text-slate-500' : ''}">${task.title}</h3>
+                        ${task.remarks ? `<p class="mt-2 text-[11px] text-slate-500 truncate">💬 ${task.remarks}</p>` : ''}
+                        <p class="mt-3 text-[10px] text-slate-700 uppercase tracking-widest font-bold">Tap to view details →</p>
+                    </div>`;
+                }).join('');
+
+                // Stagger entrance
+                requestAnimationFrame(() => {
+                    document.querySelectorAll(`#${c.div} .glass-card`).forEach((el, i) => {
+                        setTimeout(() => el.classList.add('visible'), i * 60);
+                    });
+                });
+            }
+            document.getElementById(c.counter).innerText = c.tasks.length;
+            const barPct = total > 0 ? Math.round(c.tasks.length / total * 100) : 0;
             document.getElementById(c.bar).style.width = barPct + '%';
         });
 
-        // Stats
-        document.getElementById('stat-total').innerText    = total;
-        document.getElementById('stat-progress').innerText = cols['In Progress'].count;
-        document.getElementById('stat-hold').innerText     = cols['On Hold'].count;
-        document.getElementById('stat-rate').innerText     = pct + '%';
+        // Animated stats
+        animateCount(document.getElementById('stat-total'),    total);
+        animateCount(document.getElementById('stat-progress'), cols['In Progress'].tasks.length);
+        animateCount(document.getElementById('stat-hold'),     cols['On Hold'].tasks.length);
+
+        const rateEl = document.getElementById('stat-rate');
+        const prevPct = parseInt(rateEl.innerText) || 0;
+        if (prevPct !== pct) {
+            const start = performance.now();
+            const dur   = 700;
+            (function step(now) {
+                const p  = Math.min((now - start) / dur, 1);
+                const ep = 1 - Math.pow(1-p, 3);
+                rateEl.innerText = Math.round(prevPct + (pct - prevPct) * ep) + '%';
+                if (p < 1) requestAnimationFrame(step);
+            })(start);
+        }
+
         document.getElementById('overall-bar').style.width = pct + '%';
         document.getElementById('overall-pct').innerText   = pct + '%';
-
-        document.getElementById('sync-status').innerText = 'LIVE · ' + new Date().toLocaleTimeString();
+        document.getElementById('sync-status').innerText   = 'LIVE · ' + new Date().toLocaleTimeString();
+        document.getElementById('offline-banner').style.display = 'none';
         countdown = 15;
+        showToast();
+        applyFilters();
     } catch(e) {
         document.getElementById('sync-status').innerText = 'RECONNECTING...';
+        document.getElementById('offline-banner').style.display = 'block';
     }
 }
 
-// Timers
 setInterval(updateDashboard, 15000);
 setInterval(tickCountdown, 1000);
 setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
@@ -394,95 +694,79 @@ updateDashboard();
 const canvas = document.getElementById('fw-canvas');
 const ctx    = canvas.getContext('2d');
 let particles = [];
+let rockets   = [];
+let frameCount = 0;
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resize);
 resize();
 
 class Particle {
-    constructor(x, y, color, type = 'spark') {
+    constructor(x, y, color, type='spark') {
         this.x = x; this.y = y; this.color = color; this.type = type;
-        const speed = type === 'trail' ? Math.random() * 2 : (Math.random() * 5 + 1);
+        const speed = type === 'trail' ? Math.random() * 1.5 : (Math.random() * 5 + 1);
         const angle = Math.random() * Math.PI * 2;
         this.velX  = Math.cos(angle) * speed;
         this.velY  = Math.sin(angle) * speed;
         this.alpha = 1;
-        this.size  = type === 'trail' ? Math.random() * 1.5 + 0.5 : Math.random() * 2.5 + 1;
-        this.decay = type === 'trail' ? Math.random() * 0.04 + 0.03 : Math.random() * 0.018 + 0.008;
+        this.size  = type === 'trail' ? Math.random() * 1.2 + 0.3 : Math.random() * 2.5 + 0.8;
+        this.decay = type === 'trail' ? Math.random()*0.05+0.04 : Math.random()*0.016+0.007;
     }
     update() {
-        this.x    += this.velX;
-        this.y    += this.velY;
-        this.velY += 0.04;
-        this.velX *= 0.99;
+        this.x += this.velX; this.y += this.velY;
+        this.velY += 0.04; this.velX *= 0.99;
         this.alpha -= this.decay;
     }
     draw() {
         ctx.globalAlpha = Math.max(0, this.alpha);
         ctx.fillStyle   = this.color;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
         ctx.fill();
     }
 }
 
-// Trailing rocket
 class Rocket {
-    constructor() { this.reset(); }
-    reset() {
-        this.x     = Math.random() * canvas.width;
-        this.y     = canvas.height;
-        this.tx    = Math.random() * canvas.width;
-        this.ty    = Math.random() * canvas.height * 0.5;
-        const dx   = this.tx - this.x;
-        const dy   = this.ty - this.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        this.vx    = (dx / dist) * 8;
-        this.vy    = (dy / dist) * 8;
+    constructor() {
+        this.x  = Math.random() * canvas.width;
+        this.y  = canvas.height;
+        this.tx = Math.random() * canvas.width;
+        this.ty = Math.random() * canvas.height * 0.5;
+        const dx = this.tx-this.x, dy = this.ty-this.y;
+        const d  = Math.sqrt(dx*dx+dy*dy);
+        this.vx  = (dx/d)*9; this.vy = (dy/d)*9;
         this.alive = true;
-        const cols = ['#8dc63f','#3b82f6','#f97316','#ffffff','#a78bfa'];
-        this.color = cols[Math.floor(Math.random() * cols.length)];
+        const cols = ['#8dc63f','#3b82f6','#f97316','#ffffff','#a78bfa','#38bdf8'];
+        this.color = cols[Math.floor(Math.random()*cols.length)];
     }
     update() {
         this.x += this.vx; this.y += this.vy;
         particles.push(new Particle(this.x, this.y, this.color, 'trail'));
-        const dx = this.tx - this.x, dy = this.ty - this.y;
-        if (Math.sqrt(dx*dx + dy*dy) < 12) { burst(this.x, this.y, this.color); this.alive = false; }
+        const dx=this.tx-this.x, dy=this.ty-this.y;
+        if (Math.sqrt(dx*dx+dy*dy) < 14) { burst(this.x, this.y, this.color); this.alive=false; }
     }
 }
 
 function burst(x, y, color) {
-    const count = 50 + Math.floor(Math.random() * 30);
-    for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color, 'spark'));
-    // Ring burst
-    const ring = ['#ffffff', color];
-    for (let i = 0; i < 12; i++) {
-        const p = new Particle(x, y, ring[i % 2], 'spark');
-        const a = (Math.PI * 2 / 12) * i;
-        p.velX = Math.cos(a) * 4; p.velY = Math.sin(a) * 4;
+    for (let i=0; i<60; i++) particles.push(new Particle(x,y,color,'spark'));
+    for (let i=0; i<16; i++) {
+        const p = new Particle(x,y,'#ffffff','spark');
+        const a = (Math.PI*2/16)*i;
+        p.velX = Math.cos(a)*5; p.velY = Math.sin(a)*5;
+        p.size = 1.5;
         particles.push(p);
     }
 }
 
-let rockets = [];
-let frameCount = 0;
-
 function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     frameCount++;
-
-    // Launch rockets periodically
-    if (frameCount % 90 === 0) {
-        rockets.push(new Rocket());
-    }
-
-    rockets = rockets.filter(r => r.alive);
-    rockets.forEach(r => r.update());
-
-    particles = particles.filter(p => p.alpha > 0);
-    particles.forEach(p => { p.update(); p.draw(); });
-
-    ctx.globalAlpha = 1;
+    if (frameCount % 100 === 0) rockets.push(new Rocket());
+    rockets = rockets.filter(r=>r.alive);
+    rockets.forEach(r=>r.update());
+    particles = particles.filter(p=>p.alpha>0);
+    particles.forEach(p=>{p.update();p.draw();});
+    ctx.globalAlpha=1;
     requestAnimationFrame(animate);
 }
 animate();
