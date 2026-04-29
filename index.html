@@ -377,18 +377,10 @@ function parseCSV(text) {
 }
 
 // ============================================================
-//  PARSE NUMBERED BLOCKERS
-//  Input:  "1. Server down 2. API not ready 3. Waiting for approval"
-//  Output: ["Server down", "API not ready", "Waiting for approval"]
-// ============================================================
-function parseBlockers(text) {
-    if (!text || !text.trim()) return [];
-    const parts = text.split(/(?=\d+\.\s)/g).map(s=>s.trim()).filter(Boolean);
-    return parts.map(p => p.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
-}
-
-// ============================================================
 //  UPDATE BLOCKERS TAB
+//  Each row = one blocker card
+//  Column A = title shown as card header
+//  Column B = the blocker description text
 // ============================================================
 async function updateBlockers() {
     const container = document.getElementById('col-blockers');
@@ -396,27 +388,23 @@ async function updateBlockers() {
     const badge     = document.getElementById('blocker-badge');
     const metaEl    = document.getElementById('blockers-meta');
 
-    // Show placeholder while loading if needed
     try {
         const res  = await fetch(`${BLOCKERS_CSV_URL}&t=${Date.now()}`);
         const data = await res.text();
         const rows = parseCSV(data);
 
-        // Collect all text from column B (index 1), rows after header
-        let rawText = '';
+        // Skip header row; each row: col A = title, col B = description
+        const blockers = [];
         for (let i = 1; i < rows.length; i++) {
-            if (rows[i][1] && rows[i][1].trim()) rawText += ' ' + rows[i][1].trim();
+            const title = (rows[i][0] || '').trim();
+            const desc  = (rows[i][1] || '').trim();
+            if (title || desc) blockers.push({ title, desc });
         }
 
-        const blockers = parseBlockers(rawText.trim());
-        const count    = blockers.length;
-
+        const count = blockers.length;
         animateCount(statEl, count);
-
-        // Badge on tab button
         badge.innerText = count;
         badge.classList.toggle('hidden', count === 0);
-
         metaEl.innerText = `Last synced: ${new Date().toLocaleTimeString()} · ${count} active blocker${count!==1?'s':''}`;
 
         if (count === 0) {
@@ -424,19 +412,19 @@ async function updateBlockers() {
                 <div class="col-span-2 flex flex-col items-center gap-3 py-16">
                     <div class="text-5xl">✅</div>
                     <p class="text-base font-bold text-green-400">No blockers right now!</p>
-                    <p class="text-xs text-slate-600 text-center">Write your blockers in your Google Sheet<br><span class="text-slate-500 font-semibold">Blockers tab → cell B2</span><br>Format: <span class="text-slate-500 font-mono">1. blocker one 2. blocker two</span></p>
+                    <p class="text-xs text-slate-600 text-center">Add rows in your Blockers tab<br><span class="text-slate-500 font-semibold">Column A = title &nbsp;·&nbsp; Column B = description</span></p>
                 </div>`;
             return;
         }
 
-        container.innerHTML = blockers.map((text, idx) => `
+        container.innerHTML = blockers.map((b, idx) => `
             <div class="glass-card blocker-card blocker-pulse p-5 rounded-2xl border-l-4 border-red-500/40"
                  style="opacity:0;transform:translateY(16px)">
                 <div class="flex items-start gap-3">
                     <div class="blocker-num">${idx + 1}</div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-[10px] font-black text-red-500/60 uppercase tracking-widest mb-2">Blocker #${idx + 1}</p>
-                        <p class="text-[14px] text-slate-200 leading-relaxed font-medium">${text}</p>
+                        <p class="text-[10px] font-black text-red-400/80 uppercase tracking-widest mb-2">${b.title || 'Blocker #' + (idx + 1)}</p>
+                        <p class="text-[14px] text-slate-200 leading-relaxed font-medium">${b.desc || '—'}</p>
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-red-500/10 flex items-center gap-2">
