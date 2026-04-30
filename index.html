@@ -87,18 +87,117 @@
         .theme-btn { width:36px; height:36px; border-radius:50%; background:rgba(30,41,59,0.6); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; font-size:16px; }
         .theme-btn:hover { border-color:rgba(141,198,63,0.4); transform:scale(1.1); }
 
-        body.light-mode { background-color:#f1f5f9!important; color:#1e293b; }
-        body.light-mode .strateq-navy { background-color:#f1f5f9; }
-        body.light-mode .glass-card { background:rgba(255,255,255,0.85); border-color:rgba(0,0,0,0.08); }
-        body.light-mode .stat-card { background:rgba(255,255,255,0.8); border-color:rgba(0,0,0,0.08); }
-        body.light-mode .search-input { background:rgba(255,255,255,0.8); border-color:rgba(0,0,0,0.1); color:#1e293b; }
-        body.light-mode .filter-btn { background:rgba(255,255,255,0.7); color:#64748b; border-color:rgba(0,0,0,0.1); }
-        body.light-mode .tab-btn { background:rgba(255,255,255,0.7); color:#64748b; border-color:rgba(0,0,0,0.1); }
-        body.light-mode #detail-panel { background:rgba(248,250,252,0.98); border-left-color:rgba(0,0,0,0.08); }
-        body.light-mode .bg-grid-layer { background-image:linear-gradient(to right,rgba(0,0,0,0.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(0,0,0,0.04) 1px,transparent 1px); }
-        body.light-mode h3.text-white { color:#1e293b!important; }
-        body.light-mode .text-slate-400 { color:#64748b!important; }
-        body.light-mode #toast { background:rgba(255,255,255,0.95); }
+        body.light-mode #main-title { color:#0f172a!important; }
+        body.light-mode #sync-status { color:#4a7c10!important; }
+        body.light-mode .pulse-dot { background-color:#4a7c10!important; }
+        /* ===== LIGHT MODE — full high-contrast overhaul ===== */
+        body.light-mode { background-color:#e8edf5!important; color:#0f172a; }
+        body.light-mode .strateq-navy { background-color:#e8edf5; }
+
+        /* Header */
+        body.light-mode h1.text-white { color:#0f172a!important; }
+        body.light-mode .border-slate-800 { border-color:#cbd5e1!important; }
+        body.light-mode .text-[9px].text-slate-600 { color:#64748b!important; }
+
+        /* Countdown ring track */
+        body.light-mode #countdown-circle ~ circle { stroke: rgba(0,0,0,0.1); }
+        body.light-mode .bg-slate-900\/80 { background:rgba(15,23,42,0.9)!important; }
+
+        /* Stat cards — white bg, strong border, dark text */
+        body.light-mode .stat-card {
+            background:#ffffff;
+            border:1.5px solid #cbd5e1;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+        }
+        body.light-mode .stat-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+        body.light-mode .stat-card p.text-slate-500 { color:#475569!important; }
+
+        /* Overall bar track */
+        body.light-mode .overall-track { background:#cbd5e1; }
+        body.light-mode .text-slate-600 { color:#475569!important; }
+
+        /* Tab buttons */
+        body.light-mode .tab-btn { background:#ffffff; color:#334155; border-color:#cbd5e1; font-weight:700; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+        body.light-mode .tab-btn:hover { background:#f1f5f9; color:#1e293b; border-color:#94a3b8; }
+        body.light-mode .tab-btn.active { background:rgba(141,198,63,0.15); border-color:#8dc63f; color:#4a7c10; }
+        body.light-mode .tab-btn.blocker-tab.active { background:rgba(239,68,68,0.12); border-color:#ef4444; color:#b91c1c; }
+        body.light-mode #blocker-badge { background:rgba(239,68,68,0.15); color:#b91c1c; border-color:rgba(239,68,68,0.4); }
+
+        /* Search + filter */
+        body.light-mode .search-input { background:#ffffff; border:1.5px solid #cbd5e1; color:#0f172a; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+        body.light-mode .search-input::placeholder { color:#94a3b8; }
+        body.light-mode .search-input:focus { border-color:#8dc63f; }
+        body.light-mode .filter-btn { background:#ffffff; color:#334155; border-color:#cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+        body.light-mode .filter-btn:hover { background:#f8fafc; color:#1e293b; border-color:#8dc63f; }
+        body.light-mode .filter-btn.active { background:rgba(141,198,63,0.12); border-color:#8dc63f; color:#3d6b0d; }
+
+        /* Column headers */
+        body.light-mode h2.bg-blue-500\/10   { background:rgba(59,130,246,0.1)!important; border-color:#3b82f6!important; }
+        body.light-mode h2.bg-orange-500\/10 { background:rgba(249,115,22,0.1)!important; border-color:#f97316!important; }
+        body.light-mode h2.bg-\[#8dc63f\]\/10 { background:rgba(141,198,63,0.12)!important; border-color:#8dc63f!important; }
+        body.light-mode #count-progress { background:#2563eb!important; }
+        body.light-mode #count-hold      { background:#ea580c!important; }
+        body.light-mode #count-completed { background:#5a9e1a!important; }
+
+        /* Col bar tracks */
+        body.light-mode .col-bar-track { background:#d1d5db; }
+
+        /* Task cards */
+        body.light-mode .glass-card {
+            background:#ffffff;
+            border:1.5px solid #e2e8f0;
+            box-shadow:0 2px 10px rgba(0,0,0,0.07);
+        }
+        body.light-mode .glass-card:hover { box-shadow:0 6px 24px rgba(0,0,0,0.12); border-color:#94a3b8; }
+        body.light-mode .glass-card::before { background:linear-gradient(to right,transparent,rgba(0,0,0,0.03),transparent); }
+        body.light-mode .glass-card h3.text-white { color:#0f172a!important; }
+        body.light-mode .glass-card .text-slate-600 { color:#475569!important; }
+        body.light-mode .glass-card .text-slate-500 { color:#64748b!important; }
+        body.light-mode .glass-card .text-slate-700 { color:#64748b!important; }
+        body.light-mode .glass-card p.text-[10px].text-slate-700 { color:#8dc63f!important; font-weight:700; }
+
+        /* Card left borders — keep vivid */
+        body.light-mode .glass-card.progress-card { border-left:4px solid #3b82f6!important; }
+        body.light-mode .glass-card.hold-card     { border-left:4px solid #f97316!important; }
+        body.light-mode .glass-card.done-card     { border-left:4px solid #8dc63f!important; }
+        body.light-mode .glass-card.blocker-card  { border-left:4px solid #ef4444!important; }
+
+        /* Task ID label */
+        body.light-mode .glass-card span.text-\[10px\].text-slate-600 { color:#94a3b8!important; }
+
+        /* Empty state */
+        body.light-mode .empty-state p { color:#94a3b8!important; }
+
+        /* Blocker view */
+        body.light-mode #blockers-meta { color:#64748b!important; }
+        body.light-mode .blocker-num { background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.3); color:#b91c1c; }
+        body.light-mode .glass-card.blocker-card p.text-slate-200 { color:#1e293b!important; }
+        body.light-mode .glass-card.blocker-card p.text-red-400\/80 { color:#b91c1c!important; }
+
+        /* Grid background */
+        body.light-mode .bg-grid-layer { background-image:linear-gradient(to right,rgba(0,0,0,0.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(0,0,0,0.05) 1px,transparent 1px); }
+
+        /* Offline banner */
+        body.light-mode #offline-banner { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.25); }
+
+        /* Detail panel */
+        body.light-mode #detail-panel { background:#f8fafc; border-left:1.5px solid #e2e8f0; }
+        body.light-mode #detail-panel h2 { color:#4a7c10!important; }
+        body.light-mode #detail-panel .border-slate-800 { border-color:#e2e8f0!important; }
+        body.light-mode #detail-panel .text-white { color:#0f172a!important; }
+        body.light-mode #detail-panel .text-slate-600 { color:#475569!important; }
+        body.light-mode #detail-panel .text-slate-400 { color:#64748b!important; }
+        body.light-mode #detail-panel .text-slate-300 { color:#334155!important; }
+        body.light-mode #detail-panel .bg-slate-800\/60 { background:rgba(226,232,240,0.7)!important; border-color:#cbd5e1!important; }
+        body.light-mode #detail-panel .bg-slate-800\/30 { background:rgba(241,245,249,0.8)!important; border-color:#e2e8f0!important; }
+        body.light-mode #detail-panel .text-slate-600 { color:#475569!important; }
+        body.light-mode #panel-overlay { background:rgba(15,23,42,0.4); }
+
+        /* Toast */
+        body.light-mode #toast { background:#ffffff; border-color:rgba(141,198,63,0.4); box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+
+        /* Theme button */
+        body.light-mode .theme-btn { background:#ffffff; border-color:#cbd5e1; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body class="strateq-navy text-slate-100 p-6 md:p-8 min-h-screen">
@@ -113,7 +212,7 @@
     <div class="header-glow"></div>
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b border-slate-800 pb-6 gap-4">
         <div class="relative z-10">
-            <h1 class="text-4xl font-black text-white uppercase" style="letter-spacing:-0.03em">
+            <h1 class="text-4xl font-black text-white uppercase" id="main-title" style="letter-spacing:-0.03em">
                 Technical Team <span class="strateq-green">Dashboard</span>
             </h1>
             <div class="flex items-center gap-2 mt-2">
@@ -155,7 +254,7 @@
         <p id="stat-hold" class="text-3xl text-orange-400" style="font-weight:800">0</p>
     </div>
     <div class="stat-card">
-        <p class="text-[10px] font-semibold text-[#8dc63f]/70 uppercase tracking-widest mb-1">Done Rate</p>
+        <p class="text-[10px] font-semibold text-[#8dc63f]/70 uppercase tracking-widest mb-1">Completion Rate</p>
         <p id="stat-rate" class="text-3xl strateq-green" style="font-weight:800">0%</p>
     </div>
     <div class="stat-card" style="border-color:rgba(239,68,68,0.25)">
@@ -271,7 +370,7 @@ let allTasks = [], activeFilter = 'all', currentTab = 'board', lightMode = false
 function toggleTheme() {
     lightMode = !lightMode;
     document.body.classList.toggle('light-mode', lightMode);
-    document.querySelector('.theme-btn').innerText = lightMode ? '🌙' : '☀️';
+    document.querySelector('.theme-btn').innerText = lightMode ? '☀️' : '🌙';
 }
 
 function switchTab(tab) {
