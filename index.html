@@ -253,12 +253,6 @@
 //  CONFIGURE YOUR SHEET URLS
 // ============================================================
 const TASKS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=877598510&single=true&output=csv';
-
-// Steps to get your Blockers tab GID:
-// 1. Open your Google Sheet
-// 2. Click on your "Blockers" tab at the bottom
-// 3. Look at the URL bar: ...#gid=XXXXXXXXX
-// 4. Copy that number and replace GID_NUMBER below
 const BLOCKERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOB9skN9gzlhYAYvuQmmE_Tu-s2gO-pY8LiPcpZoCWFR2sQLCeKH4Tll3QKopa2duYvf88grtvgENe/pub?gid=1985624321&single=true&output=csv';
 // ============================================================
 
@@ -318,16 +312,49 @@ function setFilter(btn) {
     activeFilter = btn.dataset.members;
     applyFilters();
 }
+
+// ============================================================
+//  FIX: applyFilters now updates column header counts + bars
+// ============================================================
 function applyFilters() {
     const query = document.getElementById('search-input').value.toLowerCase();
-    document.querySelectorAll('.glass-card').forEach(card => {
-        const members = (card.dataset.members||'').toLowerCase().split('|');
-        const title   = (card.dataset.title||'').toLowerCase();
-        const matchMember = activeFilter==='all' || members.some(m=>m.includes(activeFilter));
-        const matchSearch  = !query || title.includes(query) || members.some(m=>m.includes(query));
-        card.style.display = (matchMember && matchSearch) ? '' : 'none';
+
+    const colMap = {
+        'col-progress': { counter: 'count-progress', bar: 'bar-progress' },
+        'col-hold':     { counter: 'count-hold',     bar: 'bar-hold' },
+        'col-completed':{ counter: 'count-completed',bar: 'bar-completed' }
+    };
+    // Count visible cards per column
+    const colVisible = { 'col-progress': 0, 'col-hold': 0, 'col-completed': 0 };
+
+    document.querySelectorAll('.glass-card[data-members]').forEach(card => {
+        const members    = (card.dataset.members || '').toLowerCase().split('|');
+        const title      = (card.dataset.title   || '').toLowerCase();
+        const matchMember = activeFilter === 'all' || members.some(m => m.includes(activeFilter));
+        const matchSearch = !query || title.includes(query) || members.some(m => m.includes(query));
+        const visible     = matchMember && matchSearch;
+        card.style.display = visible ? '' : 'none';
+
+        // Which column does this card belong to?
+        const colEl = card.closest('[id^="col-"]');
+        if (colEl && colEl.id in colVisible && visible) {
+            colVisible[colEl.id]++;
+        }
+    });
+
+    // Update each column's badge count and proportional bar width
+    const grandTotal = Object.values(colVisible).reduce((a, b) => a + b, 0);
+    Object.keys(colMap).forEach(colId => {
+        const { counter, bar } = colMap[colId];
+        const vis = colVisible[colId];
+        document.getElementById(counter).innerText = vis;
+        // bar width = this col's share of all currently-visible tasks
+        const pct = grandTotal > 0 ? Math.round(vis / grandTotal * 100) : 0;
+        document.getElementById(bar).style.width = pct + '%';
     });
 }
+// ============================================================
+
 function buildFilterButtons(members) {
     const container = document.getElementById('filter-btns');
     const existing  = [...container.querySelectorAll('.filter-btn')].map(b=>b.dataset.members);
@@ -376,12 +403,6 @@ function parseCSV(text) {
     return rows;
 }
 
-// ============================================================
-//  UPDATE BLOCKERS TAB
-//  Each row = one blocker card
-//  Column A = title shown as card header
-//  Column B = the blocker description text
-// ============================================================
 async function updateBlockers() {
     const container = document.getElementById('col-blockers');
     const statEl    = document.getElementById('stat-blockers');
@@ -393,7 +414,6 @@ async function updateBlockers() {
         const data = await res.text();
         const rows = parseCSV(data);
 
-        // Skip header row; each row: col A = title, col B = description
         const blockers = [];
         for (let i = 1; i < rows.length; i++) {
             const title = (rows[i][0] || '').trim();
@@ -453,9 +473,6 @@ async function updateBlockers() {
     }
 }
 
-// ============================================================
-//  UPDATE TASKS
-// ============================================================
 async function updateDashboard() {
     try {
         const res  = await fetch(`${TASKS_CSV_URL}&t=${Date.now()}`);
@@ -523,6 +540,7 @@ async function updateDashboard() {
                     document.querySelectorAll(`#${c.div} .glass-card`).forEach((el,i)=>{ setTimeout(()=>el.classList.add('visible'), i*60); });
                 });
             }
+            // Set initial counts from raw data (before any filter is applied)
             document.getElementById(c.counter).innerText = c.tasks.length;
             document.getElementById(c.bar).style.width = (total>0?Math.round(c.tasks.length/total*100):0)+'%';
         });
